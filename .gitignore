@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+.oil-ui/
+playwright-report/
+test-results/
+*.local
