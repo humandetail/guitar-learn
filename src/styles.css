@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; color: #182138; background: #f1f4f8; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+body { margin: 0; min-width: 320px; }
+button { cursor: pointer; touch-action: manipulation; }
+.workbench { width: 100%; max-width: 480px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 23px max(24px, env(safe-area-inset-bottom)); }
+header, .title-row, .subheading { display: flex; align-items: center; justify-content: space-between; }
+header { margin-bottom: 30px; gap: 12px; }
+.eyebrow { display: flex; gap: 7px; align-items: center; font-size: 10px; letter-spacing: .14em; font-weight: 700; color: #55627a; }
+.stage { font-size: 11px; color: #55627a; }
+h1 { font-size: 26px; font-weight: 600; letter-spacing: -.04em; }
+.mode { color: #254dff; font-size: 13px; font-weight: 600; }
+.subheading { margin-top: 12px; color: #55627a; font-size: 14px; }
+.subheading b { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; }
+.strings { display: grid; grid-template-columns: minmax(92px, 1.9fr) repeat(5, minmax(34px, 1fr)); gap: 4px; height: 300px; margin-top: 30px; }
+.string-lane { position: relative; display: flex; align-items: center; flex-direction: column; border-radius: 8px; }
+.string-number { position: relative; z-index: 1; padding-top: 13px; font: 500 14px "IBM Plex Mono", ui-monospace, monospace; color: #55627a; }
+.wire { position: absolute; top: 48px; bottom: 44px; background: #c7d1ec; }
+.current { background: #e4eaff; }
+.current .wire { background: #254dff; opacity: .15; }
+.current .string-number { color: #254dff; font-weight: 700; }
+.current-reading { position: absolute; inset: 65px 0 auto; display: flex; align-items: center; flex-direction: column; background: #e4eaff; padding: 6px 0; }
+.target-label { font-size: 12px; color: #55627a; }
+.note { font: 600 48px "IBM Plex Mono", ui-monospace, monospace; letter-spacing: -.06em; color: #254dff; line-height: 1.5; }
+.cents { font: 500 28px "IBM Plex Mono", ui-monospace, monospace; color: #182138; }
+.unit { font-size: 12px; color: #55627a; }
+.quiet-note { position: absolute; bottom: 17px; font: 500 14px "IBM Plex Mono", ui-monospace, monospace; color: #55627a; }
+.tuning-scale { margin: 24px 8px 0; height: 48px; position: relative; }
+.scale-ticks { height: 16px; background: repeating-linear-gradient(to right, #a6b4ce 0 1px, transparent 1px 5%); border-bottom: 1px solid #c7d1ec; }
+.in-tune-zone { position: absolute; left: 45%; top: -5px; width: 10%; height: 25px; background: #17694d12; border-left: 1px solid #17694d55; border-right: 1px solid #17694d55; }
+.needle { position: absolute; top: -6px; height: 26px; width: 2px; background: #254dff; transform: translateX(-50%); }
+.scale-labels { display: flex; justify-content: space-between; margin-top: 7px; font: 12px "IBM Plex Mono", ui-monospace, monospace; color: #55627a; }
+.feedback { margin-top: 20px; text-align: center; min-height: 80px; }
+.status-line { display: flex; justify-content: center; align-items: center; gap: 8px; }
+.status-line svg { width: 20px; height: 20px; }
+h2 { font-size: 20px; font-weight: 600; }
+.feedback p { margin-top: 10px; font-size: 14px; color: #55627a; line-height: 1.5; }
+.in-tune .status-line { color: #17694d; }
+.error-box { display: flex; gap: 10px; margin: 8px 0 16px; padding: 12px; border: 1px solid #b52e3d44; border-radius: 8px; color: #b52e3d; font-size: 14px; line-height: 1.6; }
+.error-box svg { flex-shrink: 0; margin-top: 2px; }
+.notice { margin: 8px 0 16px; font-size: 14px; line-height: 1.6; color: #55627a; }
+.actions { margin-top: 18px; }
+footer { margin-top: 20px; text-align: center; font-size: 12px; line-height: 1.8; color: #55627a; }
+@media (min-width: 768px) { .workbench { padding-top: 40px; } .strings { height: 320px; } }
+@media (prefers-reduced-motion: no-preference) { .strings { animation: appear .3s ease-out; } @keyframes appear { from { opacity: .4; } to { opacity: 1; } } }
