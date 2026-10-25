@@ -3,7 +3,7 @@ import { Check, CircleAlert, Mic, Minus } from 'lucide-react'
 import { Button } from './components/ui/button'
 import { listenForPitch, MicrophoneInput, microphoneError, type PitchReading } from './audio'
 import { claimMicrophone, subscribeMicrophoneStop } from './audio-bus'
-import { midiNote, openMidi, type Chord, type PracticeRecord, type Settings, type StringResult } from './model'
+import { midiNote, openMidi, withinCents, type Chord, type PracticeRecord, type Settings, type StringResult } from './model'
 import { downloadJson, recordFile } from './storage'
 
 type Round = { id: string; chord: Chord; reference: number; results: (StringResult | null)[]; index: number }
@@ -50,7 +50,7 @@ export default function Practice({ chords, target, onTarget, settings, onActiveC
       setReading(value)
       if (!value) return
       const targetMidi = openMidi[index] + current.chord.frets[index]!
-      const result: StringResult = { string: 6 - index, targetMidi, note: value.note, frequency: value.frequency, cents: value.cents, correct: value.note === midiNote(targetMidi) && Math.abs(value.cents) <= 20 }
+      const result: StringResult = { string: 6 - index, targetMidi, note: value.note, frequency: value.frequency, cents: value.cents, correct: value.note === midiNote(targetMidi) && withinCents(value.cents, 20) }
       setRound(previous => previous && previous.id === current.id ? { ...previous, results: previous.results.map((old, i) => i === index ? result : old) } : previous)
     }, { reference: current.reference, targetMidi: openMidi[index] + current.chord.frets[index]! })
   }

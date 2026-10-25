@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { validateRecord, type StringResult } from '../src/model'
 
 declare global { interface Window { practiceMic: { oscillator: OscillatorNode; stream: MediaStream } } }
 async function installMic(page: Page) {
@@ -153,4 +154,40 @@ test('从和弦库开始C练习时不再显示上一轮Am完成面板', async ({
   await expect(page.getByLabel('目标和弦', { exact: true })).toHaveValue('builtin-C')
   await expect(page.getByRole('button', { name: '开始逐弦检测', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: '本轮结果 · Am', exact: true })).toHaveCount(0)
+})
+
+test('恢复文件读取期间禁用并行写入，离开管理页不提交迟到文件', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = File.prototype.text
+    File.prototype.text = async function () {
+      await new Promise(resolve => setTimeout(resolve, 400))
+      return original.call(this)
+    }
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: '设置', exact: true }).click()
+  await page.getByRole('button', { name: '数据管理', exact: true }).click()
+  const input = page.getByLabel('恢复记录文件', { exact: true })
+  const file = (record: unknown) => ({ name: 'delayed.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ type: 'guitar-learn-records', version: 1, records: [record] })) })
+  await input.setInputFiles(file(recordFixture))
+  await expect(input).toBeDisabled()
+  await expect(page.getByLabel('导入和弦文件', { exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: '清空练习记录', exact: true })).toBeDisabled()
+  await expect(page.getByRole('status')).toContainText('新增 1 条记录')
+  await input.setInputFiles(file({ ...recordFixture, id: 'late-new-record' }))
+  await expect(input).toBeDisabled()
+  await page.getByRole('button', { name: '调音', exact: true }).click()
+  await page.waitForTimeout(500)
+  await page.getByRole('button', { name: '设置', exact: true }).click()
+  await page.getByRole('button', { name: '练习记录', exact: true }).click()
+  await expect(page.getByRole('button', { name: /Am.*5\/5/ })).toHaveCount(1)
+})
+
+
+test('正负20音分的记录判定包含边界，不受浮点换算微差影响', () => {
+  for (const cents of [-20, 20]) {
+    const results: StringResult[] = structuredClone(recordFixture.results)
+    results[1] = { string: 5, targetMidi: 45, note: 'A2', frequency: 110 * 2 ** (cents / 1200), cents, correct: true }
+    expect(() => validateRecord({ ...recordFixture, results })).not.toThrow()
+  }
 })

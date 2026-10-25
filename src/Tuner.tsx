@@ -4,7 +4,7 @@ import { Button } from './components/ui/button'
 import { listenForPitch, MicrophoneInput, microphoneError, type PitchReading } from './audio'
 
 import { claimMicrophone, subscribeMicrophoneStop } from './audio-bus'
-import { openMidi, openNotes } from './model'
+import { openMidi, openNotes, withinCents } from './model'
 
 type Session = 'idle' | 'requesting' | 'listening'
 export default function Tuner({ reference }: { reference: number }) {
@@ -83,8 +83,8 @@ export default function Tuner({ reference }: { reference: number }) {
     }
   }
 
-  const inTune = reading !== null && Math.abs(reading.cents) <= 5
-  const status = reading ? inTune ? '已调准' : Math.abs(reading.cents) > 100 ? '偏离目标较大' : reading.cents < 0 ? '调高' : '调低' : session === 'listening' ? '等待弹奏' : session === 'requesting' ? '等待麦克风授权' : '准备调音'
+  const inTune = reading !== null && withinCents(reading.cents, 5)
+  const status = reading ? inTune ? '已调准' : !withinCents(reading.cents, 100) ? '偏离目标较大' : reading.cents < 0 ? '调高' : '调低' : session === 'listening' ? '等待弹奏' : session === 'requesting' ? '等待麦克风授权' : '准备调音'
   const signedCents = reading ? `${reading.cents > 0 ? '+' : ''}${Math.round(reading.cents)}` : '—'
   const scaleLimit = reading && Math.abs(reading.cents) > 50 ? Math.ceil(Math.abs(reading.cents) / 100) * 100 : 50
 
@@ -105,7 +105,7 @@ export default function Tuner({ reference }: { reference: number }) {
     </div>
     <section className={`feedback ${inTune ? 'in-tune' : ''}`} aria-live="polite">
       <div className="status-line">{reading ? inTune ? <Check aria-hidden="true" /> : <CircleAlert aria-hidden="true" /> : session === 'listening' ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}<h2>{status}</h2></div>
-      <p>{reading && Math.abs(reading.cents) > 100 ? '请核对目标弦与调弦状态' : session === 'listening' ? `请单独拨第 ${6 - selected} 弦，保持声音清晰` : session === 'requesting' ? '请在浏览器提示中允许使用麦克风' : `拿好吉他，单独拨响第 ${6 - selected} 弦`}</p>
+      <p>{reading && !withinCents(reading.cents, 100) ? '请核对目标弦与调弦状态' : session === 'listening' ? `请单独拨第 ${6 - selected} 弦，保持声音清晰` : session === 'requesting' ? '请在浏览器提示中允许使用麦克风' : `拿好吉他，单独拨响第 ${6 - selected} 弦`}</p>
     </section>
     {error && <div className="error-box" role="alert"><CircleAlert size={20} aria-hidden="true" /><p>{error}</p></div>}
     {notice && <p className="notice" role="status">{notice}</p>}

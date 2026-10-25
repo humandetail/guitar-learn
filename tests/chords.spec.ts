@@ -152,3 +152,30 @@ test('参考音按第6至1弦跳过不弹，共用430Hz基准输出精确频率'
   expect(single[5].frequency).toBeCloseTo(107.5, 3)
   expect(single.slice(0, 5).every(voice => voice.stopped)).toBe(true)
 })
+
+test('和弦库读取文件时串行导入，离开页面取消迟到提交', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = File.prototype.text
+    File.prototype.text = async function () { await new Promise(resolve => setTimeout(resolve, 400)); return original.call(this) }
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: '和弦', exact: true }).click()
+  await page.getByText('和弦文件备份与导入', { exact: true }).click()
+  const input = page.getByLabel('导入和弦 JSON', { exact: true })
+  await input.setInputFiles({ name: 'late.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ type: 'guitar-learn-chords', version: 1, chords: [{ id: 'late', name: '迟到和弦', frets: [0, 2, 2, 0, 0, 0] }] })) })
+  await expect(input).toBeDisabled()
+  await page.getByRole('button', { name: '调音', exact: true }).click()
+  await page.waitForTimeout(500)
+  await page.getByRole('button', { name: '和弦', exact: true }).click()
+  await expect(page.getByRole('button', { name: '迟到和弦', exact: true })).toHaveCount(0)
+})
+
+test('点击指法图中的可弹奏弦直接试听，支持键盘', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: '和弦', exact: true }).click()
+  const target = page.getByRole('button', { name: '指法图试听第 5 弦', exact: true })
+  await target.click()
+  await expect(page.getByRole('status')).toContainText('正在播放合成参考音')
+  await target.press('Enter')
+  await expect(page.getByRole('status')).toContainText('正在播放合成参考音')
+})

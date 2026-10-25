@@ -9,6 +9,8 @@ export type StringResult = { string: number; targetMidi: number | null; note: st
 export type PracticeRecord = { id: string; practicedAt: string; chord: Chord; reference: number; results: StringResult[] }
 export const openMidi = [40, 45, 50, 55, 59, 64]
 export const openNotes = ['E2', 'A2', 'D3', 'G3', 'B3', 'E4']
+// Only absorb IEEE-754 conversion noise; this is far below a millionth of a cent.
+export const withinCents = (value: number, tolerance: number) => Number.isFinite(value) && Math.abs(value) <= tolerance + 1e-8
 export const midiFrequency = (midi: number, reference: number) => reference * 2 ** ((midi - 69) / 12)
 export function midiNote(midi: number) { return `${['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'][((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}` }
 export function isObject(value: unknown): value is Record<string, unknown> { return !!value && typeof value === 'object' && !Array.isArray(value) }
@@ -59,7 +61,7 @@ export function validateRecord(value: unknown): asserts value is PracticeRecord 
       if (result.targetMidi !== midi || typeof result.frequency !== 'number' || !Number.isFinite(result.frequency) || result.frequency <= 0 || typeof result.note !== 'string' || typeof result.cents !== 'number' || !Number.isFinite(result.cents) || typeof result.correct !== 'boolean') throw new Error(`第 ${6 - i} 弦检测结果无效`)
       const actualMidi = Math.round(69 + 12 * Math.log2(result.frequency / Number(value.reference)))
       const cents = 1200 * Math.log2(result.frequency / midiFrequency(midi, Number(value.reference)))
-      if (Math.abs(cents - result.cents) > .001 || result.note !== midiNote(actualMidi) || result.correct !== (actualMidi === midi && Math.abs(cents) <= 20)) throw new Error(`第 ${6 - i} 弦音高与判定冲突`)
+      if (Math.abs(cents - result.cents) > .001 || result.note !== midiNote(actualMidi) || result.correct !== (actualMidi === midi && withinCents(cents, 20))) throw new Error(`第 ${6 - i} 弦音高与判定冲突`)
     }
   })
 }

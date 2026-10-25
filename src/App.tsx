@@ -15,8 +15,9 @@ import { isMicrophoneActive, stopMicrophone } from './audio-bus'
 type Page = 'tuner' | 'metronome' | 'chords' | 'practice' | 'settings' | 'history' | 'data'
 function initialSettings() {
   const problems: string[] = []
-  function load<T>(name: string, read: () => T, fallback: T) { try { return read() } catch { problems.push(`${name}无法读取，原始数据未覆盖。`); return fallback } }
-  return { value: load('设置', loadSettings, { ...defaultSettings }), chords: load('和弦', loadCustomChords, []), records: load('练习记录', loadRecords, []), error: problems.join(' '), blocked: problems }
+  const blocked: ('settings' | 'chords' | 'records')[] = []
+  function load<T>(key: 'settings' | 'chords' | 'records', name: string, read: () => T, fallback: T) { try { return read() } catch { blocked.push(key); problems.push(`${name}无法读取，原始数据未覆盖。`); return fallback } }
+  return { value: load('settings', '设置', loadSettings, { ...defaultSettings }), chords: load('chords', '和弦', loadCustomChords, []), records: load('records', '练习记录', loadRecords, []), error: problems.join(' '), blocked }
 }
 export default function App() {
   const [initial] = useState(initialSettings)
@@ -34,12 +35,12 @@ export default function App() {
   const [target, setTarget] = useState<Chord>(builtinChords.find(chord => chord.name === 'Am')!)
   const allChords = [...builtinChords, ...customChords]
   const effectiveTarget = allChords.find(chord => chord.id === target.id) ?? builtinChords.find(chord => chord.name === 'Am')!
-  function changeChords(next: Chord[]) { if (initial.blocked.some(message => message.startsWith('和弦'))) throw new Error('原和弦存档无法读取，已保护原始内容，请先导出原始存档。'); saveCustomChords(next); setCustomChords(next) }
-  function changeRecords(next: PracticeRecord[]) { if (initial.blocked.some(message => message.startsWith('练习记录'))) throw new Error('原练习存档无法读取，已保护原始内容，请先导出原始存档。'); saveRecords(next); recordsRef.current = next; setRecords(next) }
+  function changeChords(next: Chord[]) { if (initial.blocked.includes('chords')) throw new Error('原和弦存档无法读取，已保护原始内容，请先导出原始存档。'); saveCustomChords(next); setCustomChords(next) }
+  function changeRecords(next: PracticeRecord[]) { if (initial.blocked.includes('records')) throw new Error('原练习存档无法读取，已保护原始内容，请先导出原始存档。'); saveRecords(next); recordsRef.current = next; setRecords(next) }
   function saveRecord(record: PracticeRecord) { changeRecords(mergeRecordFile(JSON.stringify(recordFile([record])), recordsRef.current)) }
   function changeSettings(patch: Partial<Settings>) {
     const next = { ...settings, ...patch }
-    try { if (initial.blocked.some(message => message.startsWith('设置'))) throw new Error('设置存档受保护'); saveSettings(next); setSettings(next); setError('') }
+    try { if (initial.blocked.includes('settings')) throw new Error('设置存档受保护'); saveSettings(next); setSettings(next); setError('') }
     catch { setError('设置保存失败，原有设置仍保留，请检查本地存储空间后重试。') }
   }
   function navigate(next: Page) {
@@ -50,10 +51,10 @@ export default function App() {
     window.scrollTo(0, 0)
   }
   return <main className="workbench">
-    <header className="app-header"><span className="eyebrow">GUITAR LEARN</span><button className="icon-button" aria-label="设置" onClick={() => navigate('settings')}><SettingsIcon size={20} /></button></header>
+    <header className="app-header" hidden={['settings', 'history', 'data'].includes(page)}><span className="eyebrow">GUITAR LEARN</span><button className="icon-button" aria-label="设置" onClick={() => navigate('settings')}><SettingsIcon size={20} /></button></header>
     <section hidden={page !== 'tuner'}><Tuner reference={settings.reference} /></section>
     <section hidden={page !== 'metronome'}><Metronome settings={settings} onChange={changeSettings} /></section>
-    <section hidden={page !== 'chords'}><Chords settings={settings} customChords={customChords} onChange={changeChords} onPractice={chord => { if (hasUnsaved && !window.confirm('本轮结果尚未保存。请先导出或保存；确定放弃并开始新目标？')) return; stopMicrophone(); setHasUnsaved(false); setTarget(chord); setPracticeRequest(value => value + 1); navigate('practice') }} /></section>
+    <section hidden={page !== 'chords'}><Chords active={page === 'chords'} settings={settings} customChords={customChords} onChange={changeChords} onPractice={chord => { if (hasUnsaved && !window.confirm('本轮结果尚未保存。请先导出或保存；确定放弃并开始新目标？')) return; stopMicrophone(); setHasUnsaved(false); setTarget(chord); setPracticeRequest(value => value + 1); navigate('practice') }} /></section>
     <section hidden={page !== 'practice'}><Practice key={practiceRequest} onUnsavedChange={setHasUnsaved} chords={allChords} target={effectiveTarget} onTarget={setTarget} settings={settings} onActiveChange={setPracticeActive} onSave={saveRecord} onHistory={() => navigate('history')} /></section>
     {page === 'history' && <History records={records} onChange={changeRecords} onBack={() => navigate(previousPage.current)} />}
     {page === 'data' && <DataManager chords={customChords} records={records} onChords={changeChords} onRecords={changeRecords} onBack={() => navigate(previousPage.current)} />}

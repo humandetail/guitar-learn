@@ -96,3 +96,12 @@ input[type=range] { width: 100%; min-height: 44px; accent-color: #254dff; }
 .history-entry > span:last-child { text-align: right; }
 .file-button { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid #c7d1ec; border-radius: 8px; font-size: 14px; }
 .file-button input { width: 100%; font-size: 13px; }
+/* Keep the actual tempo, rather than its unit label, as the primary readout. */
+.metronome .bpm-number { display: flex; flex-direction: column-reverse; align-items: center; gap: 4px; font-size: 14px; color: #55627a; }
+.metronome .bpm-number input { width: 140px; font: 600 64px ui-monospace, monospace; color: #182138; text-align: center; border: 0; background: transparent; padding: 0; }
+.workbench { position: relative; }
+.app-header { position: absolute; top: 24px; right: 23px; z-index: 2; margin: 0; }
+.app-header .eyebrow { display: none; }
+.title-row { padding-right: 48px; }
+@media (min-width: 768px) { .app-header { top: 40px; } }
+@media (max-width: 374px) { .app-header { right: 12px; } .metronome .bpm-number input { width: 118px; } }

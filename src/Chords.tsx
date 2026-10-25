@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from './components/ui/button'
 import ChordDiagram from './ChordDiagram'
 import { builtinChords, chordFile, mergeChordFile, uniqueChordName } from './chords'
@@ -6,7 +6,13 @@ import { downloadJson, localDataWarning } from './storage'
 import { playChord } from './reference-audio'
 import { validateChord, type Chord, type Settings } from './model'
 
-export default function Chords({ settings, customChords, onChange, onPractice }: { settings: Settings; customChords: Chord[]; onChange: (next: Chord[]) => void; onPractice: (chord: Chord) => void }) {
+export default function Chords({ active = true, settings, customChords, onChange, onPractice }: { active?: boolean; settings: Settings; customChords: Chord[]; onChange: (next: Chord[]) => void; onPractice: (chord: Chord) => void }) {
+  const latest = useRef({ customChords, onChange }); latest.current = { customChords, onChange }
+  const readingRef = useRef(false)
+  const generation = useRef(0)
+  const [readingFile, setReadingFile] = useState(false)
+  useEffect(() => { if (!active) { generation.current++; readingRef.current = false; setReadingFile(false) } }, [active])
+  useEffect(() => () => { generation.current++ }, [])
   const [selected, setSelected] = useState(builtinChords[0].id)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
@@ -42,8 +48,20 @@ export default function Chords({ settings, customChords, onChange, onPractice }:
   function importText(text: string) {
     setNotice('')
     setPendingImport(text)
-    try { const next = mergeChordFile(text, customChords); onChange(next); setPendingImport(null); setNotice('和弦已全部导入'); setError(''); return true }
+    try { const next = mergeChordFile(text, latest.current.customChords); latest.current.onChange(next); latest.current.customChords = next; setPendingImport(null); setNotice('和弦已全部导入'); setError(''); return true }
     catch (cause) { setError(`未导入：${cause instanceof Error ? cause.message : '保存失败'}。原库及待导入内容已保留。`); return false }
+  }
+  async function chooseFile(input: HTMLInputElement) {
+    const file = input.files?.[0]
+    if (!file || readingRef.current) return
+    readingRef.current = true; setReadingFile(true)
+    const current = ++generation.current
+    try {
+      const text = await file.text()
+      if (current !== generation.current) return
+      if (importText(text)) input.value = ''
+    } catch { if (current === generation.current) setError('文件读取失败，请重新选择') }
+    finally { if (current === generation.current) { readingRef.current = false; setReadingFile(false) } }
   }
   if (draft) return <section className="space-y-5" aria-label="编辑和弦">
     <div className="title-row"><h1>编辑和弦</h1><button type="button" className="min-h-11 px-3 text-[#254dff]" onClick={() => { setDraft(null); setError('') }}>取消</button></div>
@@ -68,7 +86,7 @@ export default function Chords({ settings, customChords, onChange, onPractice }:
     <p className="text-sm text-[#55627a]">合成参考音 · 点击弦号试听单弦</p>
     <Button className="w-full" onClick={() => void play()}>播放和弦</Button>
     <Button variant="outline" className="w-full" onClick={() => onPractice(chord)}>练习这个和弦</Button>
-    <details className="space-y-3"><summary className="min-h-12 py-3 text-[#254dff]">和弦文件备份与导入</summary><p className="notice">{localDataWarning}和弦与练习记录使用独立 JSON 文件。</p><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => downloadJson('guitar-learn-chords.json', chordFile(customChords))}>导出全部自定义和弦</Button><Button variant="outline" onClick={() => downloadJson('guitar-learn-chords-example.json', chordFile([{ id: 'example', name: '示例 Am', frets: [null, 0, 2, 2, 1, 0], fingers: [null, null, 2, 3, 1, null] }]))}>下载和弦示例</Button></div><label className="block py-3">导入和弦 JSON<input aria-label="导入和弦 JSON" className="block min-h-12 max-w-full pt-3" type="file" accept="application/json,.json" onChange={event => { const input = event.currentTarget; const file = input.files?.[0]; if (file) void file.text().then(text => { if (importText(text)) input.value = '' }).catch(() => setError('文件读取失败，请重新选择')) }} /></label>{pendingImport !== null && <Button variant="outline" onClick={() => importText(pendingImport)}>重试导入和弦</Button>}</details>
+    <details className="space-y-3"><summary className="min-h-12 py-3 text-[#254dff]">和弦文件备份与导入</summary><p className="notice">{localDataWarning}和弦与练习记录使用独立 JSON 文件。</p><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => downloadJson('guitar-learn-chords.json', chordFile(customChords))}>导出全部自定义和弦</Button><Button variant="outline" onClick={() => downloadJson('guitar-learn-chords-example.json', chordFile([{ id: 'example', name: '示例 Am', frets: [null, 0, 2, 2, 1, 0], fingers: [null, null, 2, 3, 1, null] }]))}>下载和弦示例</Button></div><label className="block py-3">导入和弦 JSON<input aria-label="导入和弦 JSON" className="block min-h-12 max-w-full pt-3" type="file" accept="application/json,.json" disabled={readingFile} onChange={event => void chooseFile(event.currentTarget)} /></label>{readingFile && <p role="status">正在读取和弦文件…</p>}{pendingImport !== null && <Button disabled={readingFile} variant="outline" onClick={() => importText(pendingImport)}>重试导入和弦</Button>}</details>
     {error && <p role="alert" className="error-box">{error}</p>}{notice && <p role="status" className="notice">{notice}</p>}
   </section>
 }
