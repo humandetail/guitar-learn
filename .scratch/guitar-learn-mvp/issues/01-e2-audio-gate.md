@@ -6,6 +6,8 @@
 
 **Status:** needs-info
 
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
+
 ## Acceptance criteria
 
 - [x] 建立最小可运行工程和测试入口，并交付可实际操作的 E2 调音页面；初次打开不自动申请麦克风或播放音频。
@@ -33,3 +35,5 @@ Q28、Q47–Q48、Q51、Q58、Q64、Q66–Q67；T01／T04／T05、A04–A06。�
 详见[执行与阻塞报告](../../../docs/verification/ticket-01-status.md)、[合成结果](../../../docs/verification/ticket-01-synthetic.json)和[真实验收表](../../../docs/verification/ticket-01-audio.md)。
 
 用户后续确认：保留指定库，先由用户试用页面并补实机证据。不替换检测库、不提前放行后续票；当前 E2 页面试用不能替代其余音域与设备验收。状态保持 needs-info，等待实测反馈。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。

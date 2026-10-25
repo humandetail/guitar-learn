@@ -4,7 +4,9 @@
 
 **Blocked by:** 11 — 练习记录回顾与清理；12 — 练习记录独立备份与恢复。
 
-**Status:** ready-for-agent
+**Status:** needs-info
+
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
 
 ## Acceptance criteria
 
@@ -24,3 +26,5 @@
 ## 规格对应
 
 P07、B14、Q55；方向 A 的本轮保存失败状态。只扩展记录救回流程，和弦写入失败已由 06／08 处理。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。

@@ -1,100 +1,77 @@
-import { useEffect, useRef, useState } from 'react'
-import { Check, CircleAlert, Mic, MicOff, Square, Waves } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Activity, AudioLines, BookOpen, ClipboardCheck, Settings as SettingsIcon, ArrowLeft } from 'lucide-react'
+import Tuner from './Tuner'
+import Metronome from './Metronome.tsx'
+import Chords from './Chords.tsx'
+import Practice from './Practice'
+import History from './History'
+import DataManager from './DataManager'
+import { builtinChords } from './chords'
 import { Button } from './components/ui/button'
-import { listenForE2, MicrophoneInput, microphoneError, type PitchReading } from './audio'
+import { defaultSettings, type Chord, type PracticeRecord, type Settings } from './model'
+import { loadSettings, localDataWarning, saveSettings, loadCustomChords, saveCustomChords, loadRecords, saveRecords, mergeRecordFile, recordFile, downloadJson } from './storage'
+import { isMicrophoneActive, stopMicrophone } from './audio-bus'
 
-type Session = 'idle' | 'requesting' | 'listening'
+type Page = 'tuner' | 'metronome' | 'chords' | 'practice' | 'settings' | 'history' | 'data'
+function initialSettings() {
+  const problems: string[] = []
+  function load<T>(name: string, read: () => T, fallback: T) { try { return read() } catch { problems.push(`${name}无法读取，原始数据未覆盖。`); return fallback } }
+  return { value: load('设置', loadSettings, { ...defaultSettings }), chords: load('和弦', loadCustomChords, []), records: load('练习记录', loadRecords, []), error: problems.join(' '), blocked: problems }
+}
 export default function App() {
-  const [session, setSession] = useState<Session>('idle')
-  const [reading, setReading] = useState<PitchReading | null>(null)
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
-  const active = useRef<MicrophoneInput | null>(null)
-  const stopListening = useRef<(() => void) | null>(null)
-
-  function stop(message = '') {
-    stopListening.current?.()
-    stopListening.current = null
-    active.current?.destroy()
-    active.current = null
-    setReading(null)
-    setSession('idle')
-    setNotice(message)
+  const [initial] = useState(initialSettings)
+  const [settings, setSettings] = useState(initial.value)
+  const [page, setPage] = useState<Page>('tuner')
+  const previousPage = useRef<Page>('tuner')
+  const settingsOrigin = useRef<Page>('tuner')
+  const [error, setError] = useState(initial.error)
+  const [practiceActive, setPracticeActive] = useState(false)
+  const [hasUnsaved, setHasUnsaved] = useState(false)
+  const [practiceRequest, setPracticeRequest] = useState(0)
+  const [customChords, setCustomChords] = useState<Chord[]>(initial.chords)
+  const [records, setRecords] = useState<PracticeRecord[]>(initial.records)
+  const recordsRef = useRef(records); recordsRef.current = records
+  const [target, setTarget] = useState<Chord>(builtinChords.find(chord => chord.name === 'Am')!)
+  const allChords = [...builtinChords, ...customChords]
+  const effectiveTarget = allChords.find(chord => chord.id === target.id) ?? builtinChords.find(chord => chord.name === 'Am')!
+  function changeChords(next: Chord[]) { if (initial.blocked.some(message => message.startsWith('和弦'))) throw new Error('原和弦存档无法读取，已保护原始内容，请先导出原始存档。'); saveCustomChords(next); setCustomChords(next) }
+  function changeRecords(next: PracticeRecord[]) { if (initial.blocked.some(message => message.startsWith('练习记录'))) throw new Error('原练习存档无法读取，已保护原始内容，请先导出原始存档。'); saveRecords(next); recordsRef.current = next; setRecords(next) }
+  function saveRecord(record: PracticeRecord) { changeRecords(mergeRecordFile(JSON.stringify(recordFile([record])), recordsRef.current)) }
+  function changeSettings(patch: Partial<Settings>) {
+    const next = { ...settings, ...patch }
+    try { if (initial.blocked.some(message => message.startsWith('设置'))) throw new Error('设置存档受保护'); saveSettings(next); setSettings(next); setError('') }
+    catch { setError('设置保存失败，原有设置仍保留，请检查本地存储空间后重试。') }
   }
-
-  useEffect(() => {
-    const onHidden = () => { if (document.hidden && active.current) stop('调音已暂停，麦克风已释放。返回后请手动开始。') }
-    const onLeave = () => stop()
-    document.addEventListener('visibilitychange', onHidden)
-    window.addEventListener('pagehide', onLeave)
-    return () => {
-      document.removeEventListener('visibilitychange', onHidden)
-      window.removeEventListener('pagehide', onLeave)
-      stopListening.current?.()
-      active.current?.destroy()
-      active.current = null
-    }
-  }, [])
-
-  async function start() {
-    if (active.current) return
-    setError('')
-    setNotice('')
-    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-      setError('当前页面无法使用麦克风，请使用 HTTPS 安全连接或本机 localhost。')
-      return
-    }
-    const input = new MicrophoneInput()
-    active.current = input
-    setSession('requesting')
-    input.onInterrupted = () => {
-      if (active.current !== input) return
-      stop()
-      setError('麦克风连接已中断，请检查输入设备后重试。')
-    }
-    try {
-      await input.init()
-      if (active.current !== input) { input.destroy(); return }
-      if (document.hidden) { stop('调音已暂停，麦克风已释放。返回后请手动开始。'); return }
-      setSession('listening')
-      stopListening.current = listenForE2(input, setReading)
-    } catch (cause) {
-      if (active.current !== input) return
-      input.destroy()
-      active.current = null
-      setSession('idle')
-      setError(microphoneError(cause))
-    }
+  function navigate(next: Page) {
+    if (next === 'settings' && !['settings', 'history', 'data'].includes(page)) settingsOrigin.current = page
+    if (['history', 'data'].includes(next) && next !== page) previousPage.current = page
+    if (!['settings', 'tuner', 'practice'].includes(next) || (next === 'tuner' && practiceActive) || (next === 'practice' && isMicrophoneActive() && !practiceActive)) stopMicrophone()
+    setPage(next)
+    window.scrollTo(0, 0)
   }
-
-  const inTune = reading !== null && Math.abs(reading.cents) <= 5
-  const status = reading ? inTune ? '已调准' : Math.abs(reading.cents) > 100 ? '偏离目标较大' : reading.cents < 0 ? '调高' : '调低' : session === 'listening' ? '等待弹奏' : session === 'requesting' ? '等待麦克风授权' : '准备调音'
-  const signedCents = reading ? `${reading.cents > 0 ? '+' : ''}${Math.round(reading.cents)}` : '—'
-  const scaleLimit = reading && Math.abs(reading.cents) > 50 ? Math.ceil(Math.abs(reading.cents) / 100) * 100 : 50
-
   return <main className="workbench">
-    <header><div className="eyebrow"><Waves size={16} aria-hidden="true" /> GUITAR LEARN</div><span className="stage">音频验证 · 01</span></header>
-    <div className="title-row"><h1>调音</h1><span className="mode">第 6 弦 · E2</span></div>
-    <div className="subheading"><span>标准调弦</span><span>A4 <b>440</b> Hz</span></div>
-    <section className="strings" aria-label="标准调弦，当前验证第 6 弦 E2">
-      {['E2', 'A2', 'D3', 'G3', 'B3', 'E4'].map((note, index) => <div key={note} className={`string-lane ${index === 0 ? 'current' : ''}`}>
-        <span className="string-number">{6 - index}<span className="sr-only"> 弦</span></span>
-        <div className="wire" style={{ width: Math.max(1, 3 - index * .4) }} />
-        {index === 0 ? <div className="current-reading"><span className="target-label">目标 E2</span><strong className="note" aria-label="实际音高">{reading?.note ?? '—'}</strong><span className="cents" aria-label="音分偏差">{signedCents}</span><span className="unit">音分</span></div> : <span className="quiet-note">{note}</span>}
-      </div>)}
-    </section>
-    <div className="tuning-scale" aria-label="音分参考刻度">
-      <div className="scale-ticks" /><div className="in-tune-zone" style={{ left: `${50 - 250 / scaleLimit}%`, width: `${500 / scaleLimit}%` }} />
-      {reading && <div className="needle" style={{ left: `${50 + reading.cents / scaleLimit * 50}%` }} />}
-      <div className="scale-labels"><span>−{scaleLimit}</span><span>0</span><span>+{scaleLimit}</span></div>
-    </div>
-    <section className={`feedback ${inTune ? 'in-tune' : ''}`} aria-live="polite">
-      <div className="status-line">{reading ? inTune ? <Check aria-hidden="true" /> : <CircleAlert aria-hidden="true" /> : session === 'listening' ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}<h2>{status}</h2></div>
-      <p>{reading && Math.abs(reading.cents) > 100 ? '请核对目标弦与调弦状态' : session === 'listening' ? '请单独拨第 6 弦，保持声音清晰' : session === 'requesting' ? '请在浏览器提示中允许使用麦克风' : '拿好吉他，单独拨响最粗的一根弦'}</p>
-    </section>
-    {error && <div className="error-box" role="alert"><CircleAlert size={20} aria-hidden="true" /><p>{error}</p></div>}
-    {notice && <p className="notice" role="status">{notice}</p>}
-    <div className="actions">{session === 'idle' ? <Button className="w-full" onClick={() => void start()}><Mic size={19} aria-hidden="true" />{error ? '重试麦克风' : '开始调音'}</Button> : <Button className="w-full" onClick={() => stop('调音已停止，麦克风已释放。')}><Square size={17} aria-hidden="true" />{session === 'requesting' ? '取消启动' : '停止调音'}</Button>}</div>
-    <footer><p>本阶段验证 E2 收音，其他弦暂不开放选择。</p><p>音频仅在当前浏览器处理，不录音、不上传。</p></footer>
+    <header className="app-header"><span className="eyebrow">GUITAR LEARN</span><button className="icon-button" aria-label="设置" onClick={() => navigate('settings')}><SettingsIcon size={20} /></button></header>
+    <section hidden={page !== 'tuner'}><Tuner reference={settings.reference} /></section>
+    <section hidden={page !== 'metronome'}><Metronome settings={settings} onChange={changeSettings} /></section>
+    <section hidden={page !== 'chords'}><Chords settings={settings} customChords={customChords} onChange={changeChords} onPractice={chord => { if (hasUnsaved && !window.confirm('本轮结果尚未保存。请先导出或保存；确定放弃并开始新目标？')) return; stopMicrophone(); setHasUnsaved(false); setTarget(chord); setPracticeRequest(value => value + 1); navigate('practice') }} /></section>
+    <section hidden={page !== 'practice'}><Practice key={practiceRequest} onUnsavedChange={setHasUnsaved} chords={allChords} target={effectiveTarget} onTarget={setTarget} settings={settings} onActiveChange={setPracticeActive} onSave={saveRecord} onHistory={() => navigate('history')} /></section>
+    {page === 'history' && <History records={records} onChange={changeRecords} onBack={() => navigate(previousPage.current)} />}
+    {page === 'data' && <DataManager chords={customChords} records={records} onChords={changeChords} onRecords={changeRecords} onBack={() => navigate(previousPage.current)} />}
+    {page === 'settings' && <section className="panel settings-panel"><div className="title-row"><button className="icon-button" aria-label="返回练习" onClick={() => navigate(settingsOrigin.current)}><ArrowLeft /></button><h1>设置</h1></div>
+      <div className="field-row"><label htmlFor="reference">基准音 A4</label><div className="stepper"><Button variant="outline" aria-label="降低基准音" disabled={practiceActive || settings.reference <= 430} onClick={() => changeSettings({ reference: settings.reference - 1 })}>−</Button><input id="reference" aria-label="基准音 A4" type="number" min="430" max="450" step="1" value={settings.reference} disabled={practiceActive} onChange={event => {
+        const value = Number(event.target.value)
+        if (Number.isInteger(value) && value >= 430 && value <= 450) changeSettings({ reference: value })
+        else setError('基准音须为 430–450 Hz，步长 1 Hz。')
+      }} /><Button variant="outline" aria-label="提高基准音" disabled={practiceActive || settings.reference >= 450} onClick={() => changeSettings({ reference: settings.reference + 1 })}>＋</Button></div></div>
+      <p className="muted">430–450 Hz · 步长 1 Hz{practiceActive ? ' · 本轮检测中不可修改' : ''}</p><Button variant="outline" disabled={practiceActive} onClick={() => changeSettings({ reference: 440 })}>恢复 440 Hz</Button>
+      <label className="field-row">手指编号<input type="checkbox" checked={settings.showFingers} onChange={event => changeSettings({ showFingers: event.target.checked })} /></label>
+      <label className="field-row">左手镜像<input type="checkbox" checked={settings.leftHanded} onChange={event => changeSettings({ leftHanded: event.target.checked })} /></label>
+      <div className="stack"><Button variant="outline" onClick={() => navigate('history')}>练习记录</Button><Button variant="outline" onClick={() => navigate('data')}>数据管理</Button></div><p className="muted">{localDataWarning}</p>
+    </section>}
+    {initial.error && <div className="error-box" role="alert"><div><p>{initial.error}已禁止覆盖损坏的存档。</p><Button variant="outline" onClick={() => downloadJson('guitar-learn-raw-storage.json', { settings: localStorage.getItem('guitar-learn.settings.v1'), chords: localStorage.getItem('guitar-learn.chords.v1'), records: localStorage.getItem('guitar-learn.records.v1') })}>导出原始本地存档</Button></div></div>}
+    {error && error !== initial.error && <p className="error-box" role="alert">{error}</p>}
+    <nav className="bottom-nav" aria-label="练习模块">{([
+      ['tuner', '调音', AudioLines], ['metronome', '节拍', Activity], ['chords', '和弦', BookOpen], ['practice', '检测', ClipboardCheck],
+    ] as const).map(([key, label, Icon]) => <button key={key} aria-current={page === key ? 'page' : undefined} onClick={() => navigate(key)}><Icon size={20} /><span>{label}</span></button>)}</nav>
   </main>
 }

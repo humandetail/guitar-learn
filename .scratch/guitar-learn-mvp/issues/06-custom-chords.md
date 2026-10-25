@@ -4,7 +4,9 @@
 
 **Blocked by:** 03 — 内置和弦查看、参考音与指法显示偏好。
 
-**Status:** ready-for-agent
+**Status:** needs-info
+
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
 
 ## Acceptance criteria
 
@@ -25,3 +27,5 @@
 ## 规格对应
 
 C04、C07–C08、B04／B14；Q4、Q7、Q9–Q12、Q52、Q56。文件导入导出由 08 交付。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。

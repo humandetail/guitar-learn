@@ -4,7 +4,9 @@
 
 **Blocked by:** 09 — 完成一轮 Am 检测并保存结果。
 
-**Status:** ready-for-agent
+**Status:** needs-info
+
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
 
 ## Acceptance criteria
 
@@ -25,3 +27,5 @@
 ## 规格对应
 
 P02、P06、B13；Q53–Q55。本票仅依赖 09，通用目标和备份能力不作为开工前置。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。

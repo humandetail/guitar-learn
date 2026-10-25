@@ -1,4 +1,5 @@
 import { AudioEngine, PitchDetector } from '@kretoffer/guitar-audio-kit'
+import { midiFrequency, midiNote } from './model'
 
 // Own the input lifecycle so a late permission response can never reopen a stopped session.
 // Frequency detection remains entirely in guitar-audio-kit.
@@ -79,30 +80,30 @@ export function microphoneError(error: unknown) {
 }
 
 export type PitchReading = { note: string; cents: number; frequency: number }
-export function describePitch(frequency: number, reference = 440): PitchReading {
+export function describePitch(frequency: number, reference = 440, targetMidi = 40): PitchReading {
   const midi = 69 + 12 * Math.log2(frequency / reference)
   const nearest = Math.round(midi)
-  const names = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B']
-  return { note: `${names[((nearest % 12) + 12) % 12]}${Math.floor(nearest / 12) - 1}`, cents: 1200 * Math.log2(frequency / (reference * 2 ** ((40 - 69) / 12))), frequency }
+  return { note: midiNote(nearest), cents: 1200 * Math.log2(frequency / midiFrequency(targetMidi, reference)), frequency }
 }
 
-export function listenForE2(input: MicrophoneInput, onReading: (reading: PitchReading | null) => void) {
+export function listenForPitch(input: MicrophoneInput, onReading: (reading: PitchReading | null) => void, { reference, targetMidi }: { reference: number; targetMidi: number }) {
   // Construct after init: the library caches the input sample rate in its constructor.
   const detector = new PitchDetector(input)
+  const target = midiFrequency(targetMidi, reference)
   let frame = 0
   let samples: { time: number; frequency: number; note: string }[] = []
   let lastSample = -Infinity
   const poll = (time: number) => {
     if (time - lastSample >= 35) {
       lastSample = time
-      // Ticket 01 intentionally limits detection to the E2 region. Broad-range capability
-      // is not established; see the audio verification report before expanding it.
-      const frequency = detector.detect(60, 110)
+      // Target-local configuration avoids the library choosing a remote correlation peak.
+      // This does not establish reliable recognition of arbitrary wrong notes or octaves.
+      const frequency = detector.detect(target * 2 ** (-5 / 12), target * 2 ** (5 / 12))
       if (frequency === null) {
         samples = []
         onReading(null)
       } else {
-        const reading = describePitch(frequency)
+        const reading = describePitch(frequency, reference, targetMidi)
         const previous = samples.at(-1)
         // An unobserved long task cannot count toward a continuous stability window.
         if (previous && (previous.note !== reading.note || time - previous.time > 100)) samples = []
@@ -123,4 +124,8 @@ export function listenForE2(input: MicrophoneInput, onReading: (reading: PitchRe
   }
   frame = requestAnimationFrame(poll)
   return () => { cancelAnimationFrame(frame); detector.reset() }
+}
+
+export function listenForE2(input: MicrophoneInput, onReading: (reading: PitchReading | null) => void) {
+  return listenForPitch(input, onReading, { reference: 440, targetMidi: 40 })
 }

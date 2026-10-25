@@ -1,6 +1,8 @@
 # Guitar Learn
 
-移动端优先的浏览器吉他练习工作台。当前仅落地 Ticket 01 的 E2 调音验证页面；**音频能力门槛尚未通过，02–14 未实现**。
+移动端优先的浏览器吉他练习工作台，提供调音、节拍器、和弦库与逐弦检测，以及本地设置、练习记录和独立文件备份。
+
+**当前为可试用的软件实现，真实琴音精度、设备兼容与发声时序尚未通过正式验收。** 指定音频库的已知误差未隐藏，没有琴也可先使用和弦库、合成参考音、节拍器及文件功能。
 
 ## 运行
 
@@ -11,9 +13,7 @@ pnpm install
 pnpm dev
 ```
 
-在本机打开 http://localhost:5173 。主动点击“开始调音”后才申请麦克风；当前目标固定为第 6 弦 E2、A4 = 440 Hz，只检测 60–110 Hz 区域。其他弦仅作标准调弦位置参照，暂不可选择。音频留在当前浏览器，不录音、不上传。
-
-手机访问需要设备信任的 HTTPS；开发服务器显示的普通 HTTP 局域网 URL 无法用于手机麦克风验收。未配置公网托管或证书，不能将本机 localhost 视为手机可访问入口。
+本机 Chrome 打开 http://localhost:5173/ 。麦克风仅在主动启动后申请，音频只在当前浏览器处理，不录音、不上传。数据保存在 localStorage，换浏览器或清理网站数据后不能自动恢复，建议定期备份。手机收音需要设备信任的 HTTPS，普通 HTTP 局域网地址不能用于手机麦克风验收。
 
 ## 定向验证
 
@@ -21,19 +21,22 @@ pnpm dev
 pnpm typecheck
 pnpm lint
 pnpm build
-pnpm exec playwright test tests/tuner.spec.ts
+pnpm exec playwright test tests/tuner.spec.ts --output=/tmp/guitar-tuner-check
+pnpm exec playwright test tests/metronome.spec.ts --output=/tmp/guitar-metronome-check
+pnpm exec playwright test tests/chords.spec.ts --output=/tmp/guitar-chords-check
+pnpm exec playwright test tests/practice.spec.ts --output=/tmp/guitar-practice-check
 pnpm test:audio
 ```
 
-浏览器测试使用已安装的 Google Chrome，仅替换麦克风输入边界，覆盖真实 Web Audio 和发布库的检测链路。七个用例验证主动授权、权限失败重试、合成 E2、静音清除、取消后迟到输入释放、断麦、后台通知、大偏差刻度与采样间断重新积累稳定窗口；合成输入及模拟生命周期不替代真实设备验收。
+选择与修改范围对应的测试文件，不要求每次全部执行。浏览器测试使用已安装的 Google Chrome；需要单音的测试只替换麦克风边界，真实 Web Audio 与发布库仍参与，不能当作实机证据。各并行测试使用独立输出目录。
 
-`test:audio` 是库能力诊断，不是通过的回归测试：40 个合成单帧样例中 10 个失败，当前预期退出码为 1，完整结果写入报告。这一失败必须保留，不通过跳过断言掩盖。
+`test:audio` 是保留的库能力诊断：40 个固定样例中 10 个失败，预期退出码为 1。这不属于可忽略的通过项，必须在正式发布前按用户确认的方案处理。
 
-- [执行与阻塞报告](docs/verification/ticket-01-status.md)
+- [软件交付与待验收项](docs/verification/software-progress.md)
 - [真实音频验收表](docs/verification/ticket-01-audio.md)
 - [库级合成结果](docs/verification/ticket-01-synthetic.json)
-- [14 个已批准 tickets](.scratch/guitar-learn-mvp/issues/README.md)
+- [已批准 tickets](.scratch/guitar-learn-mvp/issues/README.md)
 
-## 约束
+## 技术约束
 
-React + TypeScript + Vite、Tailwind 与本地 shadcn 风格 Button；频率检测使用 `@kretoffer/guitar-audio-kit@0.0.2`。应用管理麦克风生命周期、稳定窗口和目标换算，不自行实现 FFT。界面沿已选“六弦工作台”方向实现最小验证页，尚非完整 MVP 或正式视觉验收结果。
+React + TypeScript + Vite、Tailwind 与本地 shadcn 风格 Button。音高检测保留 `@kretoffer/guitar-audio-kit@0.0.2`；应用管理音频生命周期、稳定窗口、目标频率和判断，不自行实现 FFT。标准调弦、无变调夹，无账号、后端或云同步。界面沿已选“六弦工作台”方向实现，正式视觉与真实设备验收待补齐。

@@ -4,7 +4,9 @@
 
 **Blocked by:** 02 — 六弦调音与基准音设置；03 — 内置和弦查看、参考音与指法显示偏好。
 
-**Status:** ready-for-agent
+**Status:** needs-info
+
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
 
 ## Acceptance criteria
 
@@ -26,3 +28,5 @@
 ## 规格对应
 
 D01–D05、D08、P01、B07／B11；Q14、Q18–Q22、Q26–Q27、Q51、Q59、Q66–Q67。通用目标由 10 扩展，历史管理由 11 完成，保存失败救回由 13 补齐。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。

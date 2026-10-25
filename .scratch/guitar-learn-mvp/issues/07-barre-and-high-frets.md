@@ -4,7 +4,9 @@
 
 **Blocked by:** 06 — 自定义和弦新增、复制、编辑与删除。
 
-**Status:** ready-for-agent
+**Status:** needs-info
+
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
 
 ## Acceptance criteria
 
@@ -24,3 +26,5 @@
 ## 规格对应
 
 Q6、Q43–Q44、Q57、C01–C02、B04。通用自定义目标检测由 10 接入，不以尚无检测入口阻塞本票的图示和试听验收。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。

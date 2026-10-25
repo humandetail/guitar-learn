@@ -4,7 +4,9 @@
 
 **Blocked by:** 05 — 拍号、细分与下一小节切换；10 — 从任意内置或自定义和弦发起检测。
 
-**Status:** ready-for-agent
+**Status:** needs-info
+
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
 
 ## Acceptance criteria
 
@@ -25,3 +27,5 @@
 ## 规格对应
 
 A01–A06、D06、B08–B10；Q30、Q37–Q40、Q47–Q48。14 不是延后处理基础音频安全的统一补丁，也不要求等待 08／11／12／13。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。

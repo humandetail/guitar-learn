@@ -4,7 +4,9 @@
 
 **Blocked by:** 04 — 可调速的基础节拍练习。
 
-**Status:** ready-for-agent
+**Status:** needs-info
+
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
 
 ## Acceptance criteria
 
@@ -24,3 +26,5 @@
 ## 规格对应
 
 M02–M06、B03；Q33–Q36、Q46、Q68。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。

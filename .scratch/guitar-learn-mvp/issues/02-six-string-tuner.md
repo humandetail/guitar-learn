@@ -4,7 +4,9 @@
 
 **Blocked by:** 01 — E2 调音首条可用链路与音频能力验证。
 
-**Status:** ready-for-agent
+**Status:** needs-info
+
+**Implementation:** implemented — 软件流程已落地，所涉及的人工／实机验收待补齐。
 
 ## Acceptance criteria
 
@@ -24,3 +26,5 @@
 ## 规格对应
 
 T01–T05、B01–B02；Q23–Q29、Q46、Q65–Q67。检测期间基准锁定由 09 在引入检测时完成。
+
+本轮软件实现及执行顺序更新见[交付报告](../../../docs/verification/software-progress.md)。原有实机验收标准不因软件实现而自动勾选通过。
