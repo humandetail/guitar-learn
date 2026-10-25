@@ -20,8 +20,8 @@ test('首次进入不申请麦克风，用户主动启动后拒绝权限可重�
 
 // Replace only the browser microphone boundary. Audio analysis still uses the real
 // Web Audio graph and the published pitch detector; this is NOT real-device evidence.
-async function installSyntheticMic(page: import('@playwright/test').Page, delay = 0) {
-  await page.addInitScript(({ delay }) => {
+async function installSyntheticMic(page: import('@playwright/test').Page, delay = 0, frequency = 82.4069) {
+  await page.addInitScript(({ delay, frequency }) => {
     const state = { stream: null as MediaStream | null, context: null as AudioContext | null, gain: null as GainNode | null }
     Object.assign(window, { syntheticMic: state })
     Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { value: async () => {
@@ -31,7 +31,7 @@ async function installSyntheticMic(page: import('@playwright/test').Page, delay 
       const oscillator = context.createOscillator()
       const gain = context.createGain()
       const destination = context.createMediaStreamDestination()
-      oscillator.frequency.value = 82.4069
+      oscillator.frequency.value = frequency
       gain.gain.value = .2
       oscillator.connect(gain).connect(destination)
       oscillator.start()
@@ -40,7 +40,7 @@ async function installSyntheticMic(page: import('@playwright/test').Page, delay 
       state.stream = destination.stream
       return destination.stream
     } })
-  }, { delay })
+  }, { delay, frequency })
 }
 
 declare global {
@@ -100,4 +100,26 @@ test('后台通知停止收音并释放，返回不自动恢复', async ({ page 
     document.dispatchEvent(new Event('visibilitychange'))
   })
   await expect(page.getByRole('button', { name: '开始调音', exact: true })).toBeVisible()
+})
+
+
+test('大偏差数值与刻度范围一致，不将超出范围读数截在50音分', async ({ page }) => {
+  await installSyntheticMic(page, 0, 90)
+  await page.goto('/')
+  await page.getByRole('button', { name: '开始调音', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '偏离目标较大', exact: true })).toBeVisible()
+  await expect(page.getByLabel('音分参考刻度', { exact: true })).toContainText('+200')
+})
+
+test('前台采样间断不能冒充连续300毫秒稳定窗口', async ({ page }) => {
+  await installSyntheticMic(page)
+  await page.goto('/')
+  await page.getByRole('button', { name: '开始调音', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '已调准', exact: true })).toBeVisible()
+  await page.evaluate(() => {
+    const begin = performance.now()
+    while (performance.now() - begin < 450) { /* simulate an unrelated foreground long task */ }
+  })
+  await expect(page.getByRole('heading', { name: '等待弹奏', exact: true })).toBeVisible({ timeout: 1000 })
+  await expect(page.getByRole('heading', { name: '已调准', exact: true })).toBeVisible()
 })

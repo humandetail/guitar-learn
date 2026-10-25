@@ -104,7 +104,8 @@ export function listenForE2(input: MicrophoneInput, onReading: (reading: PitchRe
       } else {
         const reading = describePitch(frequency)
         const previous = samples.at(-1)
-        if (previous && previous.note !== reading.note) samples = []
+        // An unobserved long task cannot count toward a continuous stability window.
+        if (previous && (previous.note !== reading.note || time - previous.time > 100)) samples = []
         samples.push({ time, frequency, note: reading.note })
         // Keep one sample on or before the 300ms boundary to require a full window.
         while (samples.length > 1 && samples[1].time <= time - 300) samples.shift()

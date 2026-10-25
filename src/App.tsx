@@ -54,7 +54,8 @@ export default function App() {
     }
     try {
       await input.init()
-      if (active.current !== input || document.hidden) { input.destroy(); return }
+      if (active.current !== input) { input.destroy(); return }
+      if (document.hidden) { stop('调音已暂停，麦克风已释放。返回后请手动开始。'); return }
       setSession('listening')
       stopListening.current = listenForE2(input, setReading)
     } catch (cause) {
@@ -69,6 +70,7 @@ export default function App() {
   const inTune = reading !== null && Math.abs(reading.cents) <= 5
   const status = reading ? inTune ? '已调准' : Math.abs(reading.cents) > 100 ? '偏离目标较大' : reading.cents < 0 ? '调高' : '调低' : session === 'listening' ? '等待弹奏' : session === 'requesting' ? '等待麦克风授权' : '准备调音'
   const signedCents = reading ? `${reading.cents > 0 ? '+' : ''}${Math.round(reading.cents)}` : '—'
+  const scaleLimit = reading && Math.abs(reading.cents) > 50 ? Math.ceil(Math.abs(reading.cents) / 100) * 100 : 50
 
   return <main className="workbench">
     <header><div className="eyebrow"><Waves size={16} aria-hidden="true" /> GUITAR LEARN</div><span className="stage">音频验证 · 01</span></header>
@@ -82,9 +84,9 @@ export default function App() {
       </div>)}
     </section>
     <div className="tuning-scale" aria-label="音分参考刻度">
-      <div className="scale-ticks" /><div className="in-tune-zone" />
-      {reading && <div className="needle" style={{ left: `${50 + Math.max(-50, Math.min(50, reading.cents))}%` }} />}
-      <div className="scale-labels"><span>−50</span><span>0</span><span>+50</span></div>
+      <div className="scale-ticks" /><div className="in-tune-zone" style={{ left: `${50 - 250 / scaleLimit}%`, width: `${500 / scaleLimit}%` }} />
+      {reading && <div className="needle" style={{ left: `${50 + reading.cents / scaleLimit * 50}%` }} />}
+      <div className="scale-labels"><span>−{scaleLimit}</span><span>0</span><span>+{scaleLimit}</span></div>
     </div>
     <section className={`feedback ${inTune ? 'in-tune' : ''}`} aria-live="polite">
       <div className="status-line">{reading ? inTune ? <Check aria-hidden="true" /> : <CircleAlert aria-hidden="true" /> : session === 'listening' ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}<h2>{status}</h2></div>
