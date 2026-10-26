@@ -27,6 +27,7 @@ async function completeAm(page: Page) {
 }
 
 test('完成Am手动逐弦推进后保存一次，可查看详情并删除', async ({ page }) => {
+  await page.addInitScript(() => { Object.defineProperty(crypto, 'randomUUID', { value: undefined, configurable: true }) })
   await installMic(page)
   await page.goto('/')
   await completeAm(page)

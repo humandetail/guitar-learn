@@ -1,3 +1,4 @@
+import { createId } from './id'
 import { useEffect, useRef, useState } from 'react'
 import { Check, CircleAlert, Mic, Minus } from 'lucide-react'
 import { PageActions } from './PageActions'
@@ -59,7 +60,7 @@ export default function Practice({ chords, target, onTarget, settings, onActiveC
     if (inputRef.current) return
     setError(''); setNotice(''); setCompleted(null); setSaved(false)
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) { setError('请使用 HTTPS 或本机 localhost 并开启麦克风权限。'); return }
-    const current: Round = { id: crypto.randomUUID(), chord: structuredClone(target), reference: settings.reference, results: target.frets.map((fret, i) => fret === null ? { string: 6 - i, targetMidi: null, note: null, frequency: null, cents: null, correct: null } : null), index: target.frets.findIndex(fret => fret !== null) }
+    const current: Round = { id: createId(), chord: structuredClone(target), reference: settings.reference, results: target.frets.map((fret, i) => fret === null ? { string: 6 - i, targetMidi: null, note: null, frequency: null, cents: null, correct: null } : null), index: target.frets.findIndex(fret => fret !== null) }
     release.current = claimMicrophone()
     const input = new MicrophoneInput(); inputRef.current = input
     roundRef.current = current; setRound(current); onActiveRef.current(true); setRequesting(true)

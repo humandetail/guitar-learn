@@ -1,3 +1,4 @@
+import { createId } from './id'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from './components/ui/button'
 import ChordDiagram from './ChordDiagram'
@@ -33,7 +34,7 @@ export default function Chords({ active = true, settings, customChords, onChange
   const [pendingImport, setPendingImport] = useState<string | null>(null)
   function edit(source?: Chord, copy = false) {
     setError(''); setNotice(''); setFailed(false)
-    setDraft(source ? { ...structuredClone(source), id: copy ? crypto.randomUUID() : source.id, builtin: false } : { id: crypto.randomUUID(), name: '', frets: [null, null, null, null, null, null] })
+    setDraft(source ? { ...structuredClone(source), id: copy ? createId() : source.id, builtin: false } : { id: createId(), name: '', frets: [null, null, null, null, null, null] })
   }
   function save() {
     if (!draft) return

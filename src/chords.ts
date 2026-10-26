@@ -1,3 +1,4 @@
+import { createId } from './id'
 import { isObject, validateChord, type Chord } from './model'
 export const builtinChords: Chord[] = [
   ['C', [null, 3, 2, 0, 1, 0], [null, 3, 2, null, 1, null]],
@@ -28,7 +29,7 @@ export function mergeChordFile(text: string, existing: Chord[]): Chord[] {
   data.chords.forEach((value: unknown, index: number) => {
     try {
       if (!isObject(value)) throw new Error('和弦资料无效')
-      const candidate = { ...value, id: crypto.randomUUID(), builtin: false }
+      const candidate = { ...value, id: createId(), builtin: false }
       validateChord(candidate)
       const chord: Chord = { id: candidate.id, name: uniqueChordName(candidate.name, next, '导入'), frets: candidate.frets, ...(candidate.fingers !== undefined ? { fingers: candidate.fingers } : {}), ...(candidate.barres !== undefined ? { barres: candidate.barres } : {}) }
       next.push(chord)

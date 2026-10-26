@@ -70,6 +70,7 @@ test('24 品、横按与编号冲突校验、保存往返', async ({ page }) => 
 })
 
 test('和弦文件整份校验、同名新身份、导出往返和写入故障重试', async ({ page }) => {
+  await page.addInitScript(() => { Object.defineProperty(crypto, 'randomUUID', { value: undefined, configurable: true }) })
   await page.goto('/')
   await page.getByRole('button', { name: '和弦', exact: true }).click()
   await page.getByRole('button', { name: '管理', exact: true }).click()
@@ -208,4 +209,25 @@ test('参考音结束后更新提示，再次播放仍能正确结束', async ({
   await play.click()
   await expect(page.getByRole('status')).toContainText('正在播放合成参考音')
   await expect(page.getByRole('status')).toContainText('参考音播放已结束', { timeout: 5000 })
+})
+
+test('无randomUUID时新增和复制和弦仍可编辑保存', async ({ page }, testInfo) => {
+  await page.addInitScript(() => { Object.defineProperty(crypto, 'randomUUID', { value: undefined, configurable: true }) })
+  await page.goto('/')
+  await page.getByRole('button', { name: '和弦', exact: true }).click()
+  await page.getByRole('button', { name: '管理', exact: true }).click()
+  await page.getByRole('button', { name: '新增和弦', exact: true }).click()
+  await expect(page.getByLabel('和弦名称', { exact: true })).toBeVisible({ timeout: 3000 })
+  await page.screenshot({ path: testInfo.outputPath('add-chord.png') })
+  await page.getByLabel('和弦名称', { exact: true }).fill('新增回归')
+  await page.getByLabel('第 6 弦品位', { exact: true }).selectOption('0')
+  await page.getByRole('button', { name: '保存和弦', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '新增回归', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '管理', exact: true }).click()
+  await page.getByRole('button', { name: '复制和弦', exact: true }).click()
+  await expect(page.getByLabel('和弦名称', { exact: true })).toHaveValue('新增回归')
+  await page.getByRole('button', { name: '保存和弦', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '新增回归（自定义）', exact: true })).toBeVisible()
+  const ids = await page.evaluate(() => JSON.parse(localStorage.getItem('guitar-learn.chords.v1')!).map((chord: { id: string }) => chord.id))
+  expect(new Set(ids).size).toBe(2)
 })
