@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, CircleAlert, Mic, MicOff, Square } from 'lucide-react'
+import { PageActions } from './PageActions'
 import { Button } from './components/ui/button'
 import { listenForPitch, MicrophoneInput, microphoneError, type PitchReading } from './audio'
 
@@ -88,28 +89,33 @@ export default function Tuner({ reference }: { reference: number }) {
   const signedCents = reading ? `${reading.cents > 0 ? '+' : ''}${Math.round(reading.cents)}` : '—'
   const scaleLimit = reading && Math.abs(reading.cents) > 50 ? Math.ceil(Math.abs(reading.cents) / 100) * 100 : 50
 
-  return <section aria-label="调音器">
-    <div className="title-row"><h1>调音</h1><span className="mode">第 {6 - selected} 弦 · {openNotes[selected]}</span></div>
+  return <section className="tuner-screen screen-layout" aria-label="调音器">
+    <div className="title-row"><h1>调音</h1></div>
     <div className="subheading"><span>标准调弦</span><span>A4 <b>{reference}</b> Hz</span></div>
-    <section className="strings" aria-label="选择目标弦" style={{ gridTemplateColumns: openNotes.map((_, index) => index === selected ? 'minmax(76px, 1.9fr)' : 'minmax(44px, 1fr)').join(' ') }}>
-      {openNotes.map((note, index) => <button type="button" key={note} aria-label={`第 ${6 - index} 弦 ${note}`} aria-pressed={selected === index} onClick={() => setSelected(index)} style={{ minWidth: 44, minHeight: 44 }} className={`string-lane ${selected === index ? 'current' : ''}`}>
-        <span className="string-number">{6 - index}<span className="sr-only"> 弦</span></span>
-        <span className="wire" style={{ width: Math.max(1, 3 - index * .4) }} />
-        {selected === index ? <span className="current-reading"><span className="target-label">目标 {note}</span><strong className="note" aria-label="实际音高">{reading?.note ?? '—'}</strong><span className="cents" aria-label="音分偏差">{signedCents}</span><span className="unit">音分</span></span> : <span className="quiet-note">{note}</span>}
-      </button>)}
-    </section>
-    <div className="tuning-scale" aria-label="音分参考刻度">
-      <div className="scale-ticks" /><div className="in-tune-zone" style={{ left: `${50 - 250 / scaleLimit}%`, width: `${500 / scaleLimit}%` }} />
-      {reading && <div className="needle" style={{ left: `${50 + reading.cents / scaleLimit * 50}%` }} />}
-      <div className="scale-labels"><span>−{scaleLimit}</span><span>0</span><span>+{scaleLimit}</span></div>
-    </div>
-    <section className={`feedback ${inTune ? 'in-tune' : ''}`} aria-live="polite">
-      <div className="status-line">{reading ? inTune ? <Check aria-hidden="true" /> : <CircleAlert aria-hidden="true" /> : session === 'listening' ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}<h2>{status}</h2></div>
-      <p>{reading && !withinCents(reading.cents, 100) ? '请核对目标弦与调弦状态' : session === 'listening' ? `请单独拨第 ${6 - selected} 弦，保持声音清晰` : session === 'requesting' ? '请在浏览器提示中允许使用麦克风' : `拿好吉他，单独拨响第 ${6 - selected} 弦`}</p>
-    </section>
-    {error && <div className="error-box" role="alert"><CircleAlert size={20} aria-hidden="true" /><p>{error}</p></div>}
-    {notice && <p className="notice" role="status">{notice}</p>}
-    <div className="actions">{session === 'idle' ? <Button className="w-full" onClick={() => void start()}><Mic size={19} aria-hidden="true" />{error ? '重试麦克风' : '开始调音'}</Button> : <Button className="w-full" onClick={() => stop('调音已停止，麦克风已释放。')}><Square size={17} aria-hidden="true" />{session === 'requesting' ? '取消启动' : '停止调音'}</Button>}</div>
-    <footer><p>请选择目标弦；仅核对音高，不能判断实际弦位。</p><p>音频仅在当前浏览器处理，不录音、不上传。</p></footer>
+    {error ? <section className="tuner-error error-state" role="alert"><CircleAlert aria-hidden="true" /><h2>无法使用麦克风</h2><p>{error}</p></section> : <>
+      <div className="tuner-live">
+        <section className="shared-reading" aria-label="当前音高读数">
+          <span className="target-label">第 {6 - selected} 弦 · 目标 {openNotes[selected]}</span>
+          <div className="reading-values"><strong className="note" aria-label="实际音高">{reading?.note ?? '—'}</strong><span className="deviation"><span className="cents" aria-label="音分偏差">{signedCents}</span><span className="unit">音分</span></span></div>
+        </section>
+        <section className="strings tuner-strings" aria-label="选择目标弦">
+          {openNotes.map((note, index) => <button type="button" key={note} aria-label={`第 ${6 - index} 弦 ${note}`} aria-pressed={selected === index} onClick={() => setSelected(index)} className={`string-lane ${selected === index ? 'current' : ''}`}>
+            <span className="string-number">{6 - index}<span className="sr-only"> 弦</span></span>
+            <span className="wire" style={{ width: Math.max(1, 3 - index * .4) }} />
+            <span className="quiet-note">{note}</span>
+          </button>)}
+        </section>
+        <div className="tuning-scale" aria-label="音分参考刻度">
+          <div className="scale-ticks" /><div className="in-tune-zone" style={{ left: `${50 - 250 / scaleLimit}%`, width: `${500 / scaleLimit}%` }} />
+          {reading && <div className="needle" style={{ left: `${50 + reading.cents / scaleLimit * 50}%` }} />}
+          <div className="scale-labels"><span>−{scaleLimit}</span><span>0</span><span>+{scaleLimit}</span></div>
+        </div>
+      </div>
+      <section className={`feedback ${inTune ? 'in-tune' : ''}`} aria-live="polite">
+        <div className="status-line">{reading ? inTune ? <Check aria-hidden="true" /> : <CircleAlert aria-hidden="true" /> : session === 'listening' ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}<h2>{status}</h2></div>
+        <p role={notice ? 'status' : undefined}>{notice || (reading && !withinCents(reading.cents, 100) ? '请核对目标弦与调弦状态' : session === 'requesting' ? '请在浏览器提示中允许使用麦克风' : `请单独拨第 ${6 - selected} 弦`)}</p>
+      </section>
+    </>}
+    <PageActions page="tuner">{session === 'idle' ? <Button className="primary-action" onClick={() => void start()}><Mic size={19} aria-hidden="true" />{error ? '重试麦克风' : '开始调音'}</Button> : <Button className="primary-action" onClick={() => stop('调音已停止，麦克风已释放。')}><Square size={17} aria-hidden="true" />{session === 'requesting' ? '取消启动' : '停止调音'}</Button>}</PageActions>
   </section>
 }

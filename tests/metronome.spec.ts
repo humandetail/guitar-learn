@@ -31,8 +31,10 @@ test('运行中多参数统一等下一小节应用，十六分静音视觉与�
   await page.getByRole('button', { name: '开始节拍', exact: true }).click()
   await expect(page.getByLabel('当前节拍')).toContainText('第 1 拍')
   await page.getByLabel('BPM', { exact: true }).fill('240')
+  await page.getByRole('button', { name: /^节奏设置/ }).click()
   await page.getByRole('button', { name: '2 拍', exact: true }).click()
   await page.getByRole('button', { name: '十六分', exact: true }).click()
+  await page.getByRole('button', { name: '关闭节奏设置', exact: true }).click()
   await expect(page.getByRole('status')).toContainText('下一小节应用：240 BPM · 2 拍 · 十六分')
   await expect(page.getByLabel('当前节拍')).toContainText('4/4 · 60 BPM')
   await expect(page.getByLabel('节拍轨道').locator('.beat-track')).toHaveCount(4)
@@ -43,8 +45,10 @@ test('运行中多参数统一等下一小节应用，十六分静音视觉与�
   await page.getByRole('button', { name: '停止节拍', exact: true }).click()
   await page.reload()
   await page.getByRole('button', { name: '节拍', exact: true }).click()
+  await page.getByRole('button', { name: /^节奏设置/ }).click()
   await expect(page.getByRole('button', { name: '2 拍', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('button', { name: '十六分', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await page.getByRole('button', { name: '关闭节奏设置', exact: true }).click()
   await expect(page.getByRole('button', { name: '开始节拍', exact: true })).toBeVisible()
 })
 
@@ -89,6 +93,7 @@ test('停止时拍数和细分立即生效，速度加减与滑块共享有效�
   await page.getByLabel('速度滑块').fill('30')
   await expect(page.getByLabel('BPM', { exact: true })).toHaveValue('30')
   await expect(page.getByRole('button', { name: '降低 BPM', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: /^节奏设置/ }).click()
   for (const beats of [2, 3, 4]) {
     await page.getByRole('button', { name: `${beats} 拍`, exact: true }).click()
     await expect(page.getByLabel('节拍轨道').locator('.beat-track')).toHaveCount(beats)
@@ -97,13 +102,16 @@ test('停止时拍数和细分立即生效，速度加减与滑块共享有效�
       await expect(page.getByLabel('节拍轨道').locator('.pulse')).toHaveCount(beats * count)
     }
   }
+  await page.getByRole('button', { name: '关闭节奏设置', exact: true }).click()
 })
 
 test('前台长任务错过预排窗口时暂停，不补播节拍', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: '节拍', exact: true }).click()
   await page.getByLabel('BPM', { exact: true }).fill('240')
+  await page.getByRole('button', { name: /^节奏设置/ }).click()
   await page.getByRole('button', { name: '十六分', exact: true }).click()
+  await page.getByRole('button', { name: '关闭节奏设置', exact: true }).click()
   await page.getByRole('button', { name: '开始节拍', exact: true }).click()
   await expect(page.getByLabel('当前节拍')).toContainText('细分')
   await page.evaluate(() => { const begin = performance.now(); while (performance.now() - begin < 250) { /* foreground stall */ } })

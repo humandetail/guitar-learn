@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from './components/ui/button'
 import ChordDiagram from './ChordDiagram'
+import { PageActions } from './PageActions'
 import { builtinChords, chordFile, mergeChordFile, uniqueChordName } from './chords'
 import { downloadJson, localDataWarning } from './storage'
 import { playChord } from './reference-audio'
@@ -20,10 +21,14 @@ export default function Chords({ active = true, settings, customChords, onChange
   const chord = chords.find(item => item.id === selected) ?? chords[0]
   async function play(index?: number) {
     setNotice('')
-    try { await playChord(chord, settings.reference, index); setError(''); setNotice('正在播放合成参考音') }
+    try { await playChord(chord, settings.reference, index, playing => setNotice(playing ? '正在播放合成参考音' : '参考音播放已结束')); setError('') }
     catch (cause) { setError(cause instanceof Error ? cause.message : '参考音播放失败，请重试') }
   }
   const [draft, setDraft] = useState<Chord | null>(null)
+  const [management, setManagement] = useState(false)
+  const picker = useRef<HTMLDivElement>(null)
+  const pickerScroll = useRef(0)
+  useLayoutEffect(() => { if (picker.current) picker.current.scrollTop = pickerScroll.current }, [management, draft])
   const [failed, setFailed] = useState(false)
   const [pendingImport, setPendingImport] = useState<string | null>(null)
   function edit(source?: Chord, copy = false) {
@@ -36,7 +41,7 @@ export default function Chords({ active = true, settings, customChords, onChange
       validateChord(draft)
       const saved = { ...draft, name: uniqueChordName(draft.name, customChords.filter(item => item.id !== draft.id)) }
       onChange([...customChords.filter(item => item.id !== draft.id), saved])
-      setSelected(saved.id); setDraft(null); setError(''); setFailed(false); setNotice('和弦已保存')
+      setSelected(saved.id); setDraft(null); setManagement(false); setError(''); setFailed(false); setNotice('和弦已保存')
     } catch (cause) { setFailed(true); setError(`未保存：${cause instanceof Error ? cause.message : '保存失败'}。内容已保留，可修正或重试。`) }
   }
   function remove() {
@@ -63,7 +68,7 @@ export default function Chords({ active = true, settings, customChords, onChange
     } catch { if (current === generation.current) setError('文件读取失败，请重新选择') }
     finally { if (current === generation.current) { readingRef.current = false; setReadingFile(false) } }
   }
-  if (draft) return <section className="space-y-5" aria-label="编辑和弦">
+  if (draft) return <section className="chord-screen chord-editor space-y-5" aria-label="编辑和弦">
     <div className="title-row"><h1>编辑和弦</h1><button type="button" className="min-h-11 px-3 text-[#254dff]" onClick={() => { setDraft(null); setError('') }}>取消</button></div>
     <label className="block space-y-2">和弦名称<input aria-label="和弦名称" className="min-h-12 w-full rounded-lg border border-[#c7d1ec] bg-white p-3" value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} /></label>
     <p className="text-sm text-[#55627a]">X 不弹 · 0 空弦 · 1–24 品；手指可不填</p>
@@ -74,19 +79,23 @@ export default function Chords({ active = true, settings, customChords, onChange
     </div>)}</div>
     <div className="space-y-3"><h2>横按信息（可选）</h2>{draft.barres?.map((barre, index) => <fieldset className="grid grid-cols-2 gap-2 rounded-lg border border-[#c7d1ec] p-3" key={index}><legend>横按 {index + 1}</legend>{(['fret', 'fromString', 'toString', 'finger'] as const).map(key => <label className="text-sm" key={key}>{({ fret: '品位', fromString: '起弦', toString: '止弦', finger: '手指' })[key]}<select aria-label={`横按 ${index + 1} ${({ fret: '品位', fromString: '起弦', toString: '止弦', finger: '手指' })[key]}`} className="block min-h-12 w-full rounded border border-[#c7d1ec] bg-white p-2" value={barre[key] ?? ''} onChange={event => { const barres = [...draft.barres!]; barres[index] = { ...barre, [key]: event.target.value ? Number(event.target.value) : undefined }; setDraft({ ...draft, barres }) }}>{key === 'finger' && <option value="">不填</option>}{Array.from({ length: key === 'fret' ? 24 : key === 'finger' ? 4 : 6 }, (_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}</select></label>)}<button type="button" className="min-h-11 text-[#b52e3d]" onClick={() => setDraft({ ...draft, barres: draft.barres?.filter((_, i) => i !== index) })}>移除横按 {index + 1}</button></fieldset>)}<button type="button" className="min-h-12 text-[#254dff]" onClick={() => setDraft({ ...draft, barres: [...(draft.barres ?? []), { fret: 1, fromString: 6, toString: 1 }] })}>添加横按</button></div>
     {error && <p role="alert" className="error-box">{error}</p>}
-    <Button className="w-full" onClick={save}>{failed ? '重试保存' : '保存和弦'}</Button>
+    <PageActions page="chords"><Button className="w-full" onClick={save}>{failed ? '重试保存' : '保存和弦'}</Button></PageActions>
     {failed && <Button variant="outline" className="w-full" onClick={() => downloadJson('guitar-learn-unsaved-chord.json', chordFile([draft]))}>导出待保存内容</Button>}
     <p className="notice">{localDataWarning}</p>
   </section>
-  return <section aria-label="和弦库" className="space-y-5">
-    <div className="title-row"><h1>和弦库</h1><span className="mode">A4 {settings.reference} Hz</span></div>
-    {[builtinChords, customChords].map((group, index) => group.length > 0 && <div key={index} aria-label={index === 0 ? '内置和弦' : '自定义和弦'} className={`grid gap-2 ${index === 0 ? 'grid-cols-5' : 'grid-cols-2'}`}>{group.map(item => <button type="button" key={item.id} aria-pressed={item.id === chord.id} onClick={() => { setSelected(item.id); setNotice('') }} className={`min-h-12 min-w-0 break-all rounded-lg border p-2 text-sm ${item.id === chord.id ? 'border-[#254dff] bg-[#e4eaff] text-[#254dff]' : 'border-[#c7d1ec]'}`}>{item.name}</button>)}</div>)}
-    <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => edit()}>新增和弦</Button><Button variant="outline" onClick={() => edit(chord, true)}>复制和弦</Button>{!chord.builtin && <><Button variant="outline" onClick={() => edit(chord)}>编辑和弦</Button><Button variant="outline" onClick={remove}>删除和弦</Button></>}</div>
-    <h2>{chord.name}</h2><ChordDiagram chord={chord} settings={settings} onPlayString={index => void play(index)} />
-    <p className="text-sm text-[#55627a]">合成参考音 · 点击弦号试听单弦</p>
-    <Button className="w-full" onClick={() => void play()}>播放和弦</Button>
-    <Button variant="outline" className="w-full" onClick={() => onPractice(chord)}>练习这个和弦</Button>
-    <details className="space-y-3"><summary className="min-h-12 py-3 text-[#254dff]">和弦文件备份与导入</summary><p className="notice">{localDataWarning}和弦与练习记录使用独立 JSON 文件。</p><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => downloadJson('guitar-learn-chords.json', chordFile(customChords))}>导出全部自定义和弦</Button><Button variant="outline" onClick={() => downloadJson('guitar-learn-chords-example.json', chordFile([{ id: 'example', name: '示例 Am', frets: [null, 0, 2, 2, 1, 0], fingers: [null, null, 2, 3, 1, null] }]))}>下载和弦示例</Button></div><label className="block py-3">导入和弦 JSON<input aria-label="导入和弦 JSON" className="block min-h-12 max-w-full pt-3" type="file" accept="application/json,.json" disabled={readingFile} onChange={event => void chooseFile(event.currentTarget)} /></label>{readingFile && <p role="status">正在读取和弦文件…</p>}{pendingImport !== null && <Button disabled={readingFile} variant="outline" onClick={() => importText(pendingImport)}>重试导入和弦</Button>}</details>
+  return <section aria-label="和弦库" className={`chord-screen ${management ? 'chord-management' : 'chord-practice'}`}>
+    <div className="title-row"><h1>{management ? '管理和弦' : '和弦库'}</h1><button type="button" className="min-h-11 px-3 text-[#254dff]" onClick={() => setManagement(!management)}>{management ? '返回练习' : '管理'}</button></div>
+    <div ref={picker} onScroll={event => { pickerScroll.current = event.currentTarget.scrollTop }} className="chord-picker" aria-label="选择和弦">
+      {[builtinChords, customChords].map((group, index) => group.length > 0 && <div key={index} aria-label={index === 0 ? '内置和弦' : '自定义和弦'} className={`grid gap-2 ${index === 0 ? 'grid-cols-5' : 'grid-cols-2'}`}>{group.map(item => <button type="button" key={item.id} aria-pressed={item.id === chord.id} onClick={() => { setSelected(item.id); setNotice('') }} className={`min-h-12 min-w-0 break-all rounded-lg border p-2 text-sm ${item.id === chord.id ? 'border-[#254dff] bg-[#e4eaff] text-[#254dff]' : 'border-[#c7d1ec]'}`}>{item.name}</button>)}</div>)}
+    </div>
+    <h2 className="chord-title">{chord.name}</h2>
+    {management ? <>
+      <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => edit()}>新增和弦</Button><Button variant="outline" onClick={() => edit(chord, true)}>复制和弦</Button>{!chord.builtin && <><Button variant="outline" onClick={() => edit(chord)}>编辑和弦</Button><Button variant="outline" onClick={remove}>删除和弦</Button></>}</div>
+      <details className="space-y-3"><summary className="min-h-12 py-3 text-[#254dff]">和弦文件备份与导入</summary><p className="notice">{localDataWarning}和弦与练习记录使用独立 JSON 文件。</p><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => downloadJson('guitar-learn-chords.json', chordFile(customChords))}>导出全部自定义和弦</Button><Button variant="outline" onClick={() => downloadJson('guitar-learn-chords-example.json', chordFile([{ id: 'example', name: '示例 Am', frets: [null, 0, 2, 2, 1, 0], fingers: [null, null, 2, 3, 1, null] }]))}>下载和弦示例</Button></div><label className="block py-3">导入和弦 JSON<input aria-label="导入和弦 JSON" className="block min-h-12 max-w-full pt-3" type="file" accept="application/json,.json" disabled={readingFile} onChange={event => void chooseFile(event.currentTarget)} /></label>{readingFile && <p role="status">正在读取和弦文件…</p>}{pendingImport !== null && <Button disabled={readingFile} variant="outline" onClick={() => importText(pendingImport)}>重试导入和弦</Button>}</details>
+    </> : <>
+      <ChordDiagram key={chord.id} chord={chord} settings={settings} compact onPlayString={index => void play(index)} />
+      <PageActions page="chords"><div className="chord-actions grid w-full grid-cols-2 gap-2"><Button onClick={() => void play()}>播放和弦</Button><Button variant="outline" onClick={() => onPractice(chord)}>练习这个和弦</Button></div></PageActions>
+    </>}
     {error && <p role="alert" className="error-box">{error}</p>}{notice && <p role="status" className="notice">{notice}</p>}
   </section>
 }

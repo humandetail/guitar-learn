@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Activity, AudioLines, BookOpen, ClipboardCheck, Settings as SettingsIcon, ArrowLeft } from 'lucide-react'
 import Tuner from './Tuner'
 import Metronome from './Metronome.tsx'
@@ -7,6 +7,7 @@ import Practice from './Practice'
 import History from './History'
 import DataManager from './DataManager'
 import { builtinChords } from './chords'
+import { PageActionContext } from './PageActions'
 import { Button } from './components/ui/button'
 import { defaultSettings, type Chord, type PracticeRecord, type Settings } from './model'
 import { loadSettings, localDataWarning, saveSettings, loadCustomChords, saveCustomChords, loadRecords, saveRecords, mergeRecordFile, recordFile, downloadJson } from './storage'
@@ -20,6 +21,33 @@ function initialSettings() {
   return { value: load('settings', '设置', loadSettings, { ...defaultSettings }), chords: load('chords', '和弦', loadCustomChords, []), records: load('records', '练习记录', loadRecords, []), error: problems.join(' '), blocked }
 }
 export default function App() {
+  const contentArea = useRef<HTMLDivElement>(null)
+  const [actionHost, setActionHost] = useState<HTMLDivElement | null>(null)
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null)
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
+  useEffect(() => {
+    const resize = () => {
+      const viewport = window.visualViewport
+      const focused = document.activeElement
+      const editing = focused instanceof HTMLTextAreaElement || focused instanceof HTMLInputElement && !['checkbox', 'range', 'button'].includes(focused.type)
+      const keyboard = !!viewport && viewport.scale === 1 && editing && window.innerHeight - viewport.height > 120
+      setKeyboardOpen(keyboard)
+      setViewportHeight(viewport?.scale === 1 ? viewport.height : null)
+      if (keyboard) requestAnimationFrame(() => focused?.scrollIntoView({ block: 'nearest' }))
+    }
+    const focusChanged = () => requestAnimationFrame(resize)
+    resize()
+    window.visualViewport?.addEventListener('resize', resize)
+    window.addEventListener('resize', resize)
+    document.addEventListener('focusin', focusChanged)
+    document.addEventListener('focusout', focusChanged)
+    return () => {
+      window.visualViewport?.removeEventListener('resize', resize)
+      window.removeEventListener('resize', resize)
+      document.removeEventListener('focusin', focusChanged)
+      document.removeEventListener('focusout', focusChanged)
+    }
+  }, [])
   const [initial] = useState(initialSettings)
   const [settings, setSettings] = useState(initial.value)
   const [page, setPage] = useState<Page>('tuner')
@@ -49,13 +77,14 @@ export default function App() {
     if (!['settings', 'tuner', 'practice'].includes(next) || (next === 'tuner' && practiceActive) || (next === 'practice' && isMicrophoneActive() && !practiceActive)) stopMicrophone()
     setPage(next)
     window.scrollTo(0, 0)
+    contentArea.current?.scrollTo(0, 0)
   }
-  return <main className="workbench">
+  return <PageActionContext.Provider value={{ page, host: actionHost }}><main className={`workbench${keyboardOpen ? ' keyboard-open' : ''}`} style={viewportHeight ? { '--workbench-height': `${viewportHeight}px` } as CSSProperties : undefined}>
     <header className="app-header" hidden={['settings', 'history', 'data'].includes(page)}><span className="eyebrow">GUITAR LEARN</span><button className="icon-button" aria-label="设置" onClick={() => navigate('settings')}><SettingsIcon size={20} /></button></header>
-    <section hidden={page !== 'tuner'}><Tuner reference={settings.reference} /></section>
-    <section hidden={page !== 'metronome'}><Metronome settings={settings} onChange={changeSettings} /></section>
-    <section hidden={page !== 'chords'}><Chords active={page === 'chords'} settings={settings} customChords={customChords} onChange={changeChords} onPractice={chord => { if (hasUnsaved && !window.confirm('本轮结果尚未保存。请先导出或保存；确定放弃并开始新目标？')) return; stopMicrophone(); setHasUnsaved(false); setTarget(chord); setPracticeRequest(value => value + 1); navigate('practice') }} /></section>
-    <section hidden={page !== 'practice'}><Practice key={practiceRequest} onUnsavedChange={setHasUnsaved} chords={allChords} target={effectiveTarget} onTarget={setTarget} settings={settings} onActiveChange={setPracticeActive} onSave={saveRecord} onHistory={() => navigate('history')} /></section>
+    <div className="page-content" ref={contentArea}><section className="page-screen" hidden={page !== 'tuner'}><Tuner reference={settings.reference} /></section>
+    <section className="page-screen" hidden={page !== 'metronome'}><Metronome settings={settings} onChange={changeSettings} /></section>
+    <section className="page-screen" hidden={page !== 'chords'}><Chords active={page === 'chords'} settings={settings} customChords={customChords} onChange={changeChords} onPractice={chord => { if (hasUnsaved && !window.confirm('本轮结果尚未保存。请先导出或保存；确定放弃并开始新目标？')) return; stopMicrophone(); setHasUnsaved(false); setTarget(chord); setPracticeRequest(value => value + 1); navigate('practice') }} /></section>
+    <section className="page-screen" hidden={page !== 'practice'}><Practice key={practiceRequest} onUnsavedChange={setHasUnsaved} chords={allChords} target={effectiveTarget} onTarget={setTarget} settings={settings} onActiveChange={setPracticeActive} onSave={saveRecord} onHistory={() => navigate('history')} /></section>
     {page === 'history' && <History records={records} onChange={changeRecords} onBack={() => navigate(previousPage.current)} />}
     {page === 'data' && <DataManager chords={customChords} records={records} onChords={changeChords} onRecords={changeRecords} onBack={() => navigate(previousPage.current)} />}
     {page === 'settings' && <section className="panel settings-panel"><div className="title-row"><button className="icon-button" aria-label="返回练习" onClick={() => navigate(settingsOrigin.current)}><ArrowLeft /></button><h1>设置</h1></div>
@@ -67,12 +96,13 @@ export default function App() {
       <p className="muted">430–450 Hz · 步长 1 Hz{practiceActive ? ' · 本轮检测中不可修改' : ''}</p><Button variant="outline" disabled={practiceActive} onClick={() => changeSettings({ reference: 440 })}>恢复 440 Hz</Button>
       <label className="field-row">手指编号<input type="checkbox" checked={settings.showFingers} onChange={event => changeSettings({ showFingers: event.target.checked })} /></label>
       <label className="field-row">左手镜像<input type="checkbox" checked={settings.leftHanded} onChange={event => changeSettings({ leftHanded: event.target.checked })} /></label>
-      <div className="stack"><Button variant="outline" onClick={() => navigate('history')}>练习记录</Button><Button variant="outline" onClick={() => navigate('data')}>数据管理</Button></div><p className="muted">{localDataWarning}</p>
+      <div className="stack"><Button variant="outline" onClick={() => navigate('history')}>练习记录</Button><Button variant="outline" onClick={() => navigate('data')}>数据管理</Button></div><p className="muted">{localDataWarning}</p><details className="app-explanation"><summary>音频与隐私说明</summary><p>音频仅在当前浏览器处理，不录音、不上传。检测只核对音高，不验证手型、实际发声弦位或消音效果。</p></details>
     </section>}
     {initial.error && <div className="error-box" role="alert"><div><p>{initial.error}已禁止覆盖损坏的存档。</p><Button variant="outline" onClick={() => downloadJson('guitar-learn-raw-storage.json', { settings: localStorage.getItem('guitar-learn.settings.v1'), chords: localStorage.getItem('guitar-learn.chords.v1'), records: localStorage.getItem('guitar-learn.records.v1') })}>导出原始本地存档</Button></div></div>}
     {error && error !== initial.error && <p className="error-box" role="alert">{error}</p>}
+    </div><div className="workbench-bottom"><div className="page-actions" role="region" aria-label="当前页面操作" ref={setActionHost} />
     <nav className="bottom-nav" aria-label="练习模块">{([
       ['tuner', '调音', AudioLines], ['metronome', '节拍', Activity], ['chords', '和弦', BookOpen], ['practice', '检测', ClipboardCheck],
     ] as const).map(([key, label, Icon]) => <button key={key} aria-current={page === key ? 'page' : undefined} onClick={() => navigate(key)}><Icon size={20} /><span>{label}</span></button>)}</nav>
-  </main>
+  </div></main></PageActionContext.Provider>
 }

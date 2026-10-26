@@ -3,6 +3,7 @@ import { Button } from './components/ui/button'
 import type { Settings } from './model'
 import { isMicrophoneActive, subscribeAudioState } from './audio-bus'
 import { MetronomeClock, type Rhythm } from './metronome-clock'
+import { PageActions } from './PageActions'
 
 const sameRhythm = (a: Rhythm, b: Rhythm) => a.bpm === b.bpm && a.beats === b.beats && a.subdivision === b.subdivision
 export default function Metronome({ settings, onChange }: { settings: Settings; onChange: (patch: Partial<Settings>) => void }) {
@@ -18,6 +19,8 @@ export default function Metronome({ settings, onChange }: { settings: Settings; 
   const live = useRef({ settings, soundBlocked })
   live.current = { settings, soundBlocked }
   const starting = useRef(false)
+  const rhythmDialog = useRef<HTMLDialogElement>(null)
+  const rhythmTrigger = useRef<HTMLButtonElement>(null)
 
   function stop(message = '') {
     clock.current?.stop()
@@ -80,28 +83,33 @@ export default function Metronome({ settings, onChange }: { settings: Settings; 
   const beat = Math.floor(step / rhythm.subdivision)
   const sub = step % rhythm.subdivision
   const pending = running && !sameRhythm(applied, settings)
-  return <div className="metronome">
-    <div className="title-row"><h1>节拍器</h1><span className="mode">跟上每一拍</span></div>
-    <section className="panel" aria-label="速度设置">
+  return <div className="metronome screen-layout">
+    <header className="title-row metronome-header"><h1>节拍器</h1></header>
+    <section className="panel tempo-area" aria-label="速度设置">
       <div className="field-row"><Button aria-label="降低 BPM" disabled={settings.bpm <= 30} onClick={() => changeBpm(String(settings.bpm - 1))}>−</Button><label className="bpm-number">BPM<input aria-label="BPM" type="number" min="30" max="240" step="1" value={input} aria-invalid={!!error} onChange={e => changeBpm(e.target.value)} /></label><Button aria-label="提高 BPM" disabled={settings.bpm >= 240} onClick={() => changeBpm(String(settings.bpm + 1))}>＋</Button></div>
       <input aria-label="速度滑块" type="range" min="30" max="240" step="1" value={settings.bpm} onChange={e => changeBpm(e.target.value)} />
-      <div className="field-row"><span>30</span><span>240</span></div>
+      <div className="field-row tempo-limits"><span>30</span><span>240</span></div>
     </section>
     {error && <p role="alert" className="error-box">{error}</p>}
-    <div className="form-grid">
-      <fieldset><legend>每小节拍数</legend><div className="segmented">{([2, 3, 4] as const).map(beats => <Button key={beats} variant="outline" aria-pressed={settings.beats === beats} onClick={() => onChange({ beats })}>{beats} 拍</Button>)}</div></fieldset>
-      <fieldset><legend>细分</legend><div className="segmented">{([{ value: 1, label: '四分' }, { value: 2, label: '八分' }, { value: 4, label: '十六分' }] as const).map(({ value, label }) => <Button key={value} variant="outline" aria-pressed={settings.subdivision === value} onClick={() => onChange({ subdivision: value })}>{label}</Button>)}</div></fieldset>
-    </div>
     <section className="beat-tracks" aria-label="节拍轨道" style={{ display: 'grid', gridTemplateColumns: `repeat(${rhythm.beats}, 1fr)`, gap: 8 }}>
-      {Array.from({ length: rhythm.beats }, (_, i) => <div key={i} className={`beat-track ${running && beat === i ? 'current' : ''} ${i === 0 ? 'accent' : ''}`} aria-label={`第 ${i + 1} 拍${i === 0 ? ' 重音' : ''}`} aria-current={running && beat === i ? 'step' : undefined}><strong>{i + 1}</strong><span>{i === 0 ? '重音' : '主拍'}</span>{Array.from({ length: rhythm.subdivision }, (_, j) => <i key={j} className={running && beat === i && sub === j ? 'pulse active' : 'pulse'} />)}</div>)}
+      {Array.from({ length: rhythm.beats }, (_, i) => <div key={i} className={`beat-track ${running && beat === i ? 'current' : ''} ${i === 0 ? 'accent' : ''}`} aria-label={`第 ${i + 1} 拍${i === 0 ? ' 重音' : ''}`} aria-current={running && beat === i ? 'step' : undefined}><strong>{i + 1}</strong><span>{i === 0 ? '重音' : '主拍'}</span><span className="pulse-group">{Array.from({ length: rhythm.subdivision }, (_, j) => <i key={j} className={running && beat === i && sub === j ? 'pulse active' : 'pulse'} />)}</span></div>)}
     </section>
     <p aria-label="当前节拍" className="beat-position">{running ? `第 ${beat + 1} 拍 · ${sub === 0 ? beat === 0 ? '小节重音' : '主拍' : `细分 ${sub + 1}`} · ${rhythm.beats}/4 · ${rhythm.bpm} BPM` : '准备开始 · 从第一拍进入'}</p>
-    <label className="field-row"><span>播放 click 声音</span><input type="checkbox" aria-label="播放 click 声音" checked={settings.sound} onChange={e => onChange({ sound: e.target.checked })} /></label>
+    <Button ref={rhythmTrigger} className="rhythm-summary" variant="outline" aria-haspopup="dialog" aria-controls="rhythm-settings" onClick={() => rhythmDialog.current?.showModal()}><span>节奏设置</span><span>{settings.beats} 拍 · {settings.subdivision === 1 ? '四分' : settings.subdivision === 2 ? '八分' : '十六分'} <span aria-hidden="true">›</span></span></Button>
+    <label className="field-row sound-toggle"><span>播放 click 声音</span><input type="checkbox" aria-label="播放 click 声音" checked={settings.sound} onChange={e => onChange({ sound: e.target.checked })} /></label>
     {pending && <p role="status" className="notice">下一小节应用：{settings.bpm} BPM · {settings.beats} 拍 · {settings.subdivision === 1 ? '四分' : settings.subdivision === 2 ? '八分' : '十六分'}</p>}
     {soundBlocked && <p className="notice">{micActive ? '麦克风使用中，click 已暂停，视觉节拍继续。' : '麦克风检测已结束，请手动恢复节拍器声音。'}</p>}
     {soundBlocked && <Button variant="outline" disabled={micActive || !settings.sound} onClick={() => { if (!isMicrophoneActive() && settings.sound) setSoundBlocked(false) }}>恢复节拍器声音</Button>}
     {notice && <p role="status" className="notice">{notice}</p>}
-    <div className="actions"><Button className="w-full" onClick={running ? () => stop('节拍已停止。') : () => void start()}>{running ? '停止节拍' : notice.includes('暂停') || notice.includes('中断') ? '继续节拍' : '开始节拍'}</Button></div>
-    <p className="muted">click 为合成短音；关闭声音仍可跟随视觉拍点。</p>
+    <PageActions page="metronome"><Button className="w-full" onClick={running ? () => stop('节拍已停止。') : () => void start()}>{running ? '停止节拍' : notice.includes('暂停') || notice.includes('中断') ? '继续节拍' : '开始节拍'}</Button></PageActions>
+    <dialog id="rhythm-settings" ref={rhythmDialog} className="rhythm-dialog" aria-labelledby="rhythm-settings-title" onClose={() => rhythmTrigger.current?.focus()}>
+      <div className="rhythm-dialog-content">
+        <header className="rhythm-dialog-header"><h2 id="rhythm-settings-title">节奏设置</h2><Button variant="outline" aria-label="关闭节奏设置" onClick={() => rhythmDialog.current?.close()}>关闭</Button></header>
+        <div className="form-grid">
+          <fieldset><legend>每小节拍数</legend><div className="segmented">{([2, 3, 4] as const).map(beats => <Button key={beats} variant="outline" aria-pressed={settings.beats === beats} onClick={() => onChange({ beats })}>{beats} 拍</Button>)}</div></fieldset>
+          <fieldset><legend>细分</legend><div className="segmented">{([{ value: 1, label: '四分' }, { value: 2, label: '八分' }, { value: 4, label: '十六分' }] as const).map(({ value, label }) => <Button key={value} variant="outline" aria-pressed={settings.subdivision === value} onClick={() => onChange({ subdivision: value })}>{label}</Button>)}</div></fieldset>
+        </div>
+      </div>
+    </dialog>
   </div>
 }

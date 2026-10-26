@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, CircleAlert, Mic, Minus } from 'lucide-react'
+import { PageActions } from './PageActions'
 import { Button } from './components/ui/button'
 import { listenForPitch, MicrophoneInput, microphoneError, type PitchReading } from './audio'
 import { claimMicrophone, subscribeMicrophoneStop } from './audio-bus'
@@ -101,7 +102,16 @@ export default function Practice({ chords, target, onTarget, settings, onActiveC
   const allMeasured = round !== null && round.results.every(result => result !== null)
   const correctLive = reading && activeResult?.correct
   const nextExists = round?.chord.frets.some((fret, i) => i > round.index && fret !== null)
-  return <div className="panel practice-panel">
+  const progress = <section className="strings practice-strings" aria-label="逐弦检测进度">{selected.frets.map((fret, i) => <div key={i} className={`string-lane ${round?.index === i ? 'current' : ''}`}>
+    <span className="string-number">{6 - i}</span><div className="wire" />
+    <span className="quiet-note">{fret === null ? '不弹' : midiNote(openMidi[i] + fret)}</span>
+    <span className="step-icon">{fret === null ? <Minus size={16} aria-label="未检测" /> : round?.results[i] ? round.results[i]!.correct ? <Check size={16} aria-label="符合目标" /> : <CircleAlert size={16} aria-label="音高不符" /> : '待测'}</span>
+  </div>)}</section>
+  function again() {
+    if (!saved && !window.confirm('本轮结果尚未保存，确定放弃并再练一轮？')) return
+    setCompleted(null); setError(''); setNotice('')
+  }
+  return <div className="panel practice-panel screen-layout">
     <div className="title-row"><h1>逐弦检测</h1><select aria-label="目标和弦" value={target.id} onChange={event => {
       const chord = chords.find(item => item.id === event.target.value)
       if (!chord) return
@@ -109,30 +119,35 @@ export default function Practice({ chords, target, onTarget, settings, onActiveC
       if (roundRef.current) abandon('已切换目标，本轮未保存。')
       onTarget(chord); setCompleted(null)
     }}>{chords.map(chord => <option key={chord.id} value={chord.id}>{chord.name}</option>)}</select></div>
-    <p className="muted">A4 {round?.reference ?? completed?.reference ?? settings.reference} Hz · 请一次只弹一根弦</p>
+    <p className="practice-meta muted">A4 {round?.reference ?? completed?.reference ?? settings.reference} Hz · 请一次只弹一根弦</p>
     {completed ? <>
-      <h2>本轮结果 · {completed.chord.name}</h2>
-      <p>{completed.results.filter(result => result.correct === true).length}/{completed.results.filter(result => result.correct !== null).length} 根弦音高符合目标</p>
-      <ol className="result-list">{completed.results.map(result => <li key={result.string}><span>第 {result.string} 弦</span><span>{result.targetMidi === null ? '不弹／未检测' : `${midiNote(result.targetMidi)} · ${result.correct ? '音高符合目标 ✓' : '音高不符 !'}`}</span></li>)}</ol>
-      <p role="status" className={saved ? 'success' : 'error-text'}>{saved ? '本轮已保存' : '本轮未保存，当前结果仍保留'}</p>
-      {!saved && <div className="stack"><Button onClick={() => save(completed)}>重试保存</Button><Button variant="outline" onClick={() => downloadJson('guitar-learn-result.json', recordFile([completed]))}>导出本次结果</Button><Button variant="outline" onClick={onHistory}>查看并清理旧记录</Button></div>}
-      <Button className="w-full mt-4" variant="outline" onClick={() => { if (!saved && !window.confirm('本轮结果尚未保存，确定放弃并再练一轮？')) return; setCompleted(null); setError(''); setNotice('') }}>再练一轮</Button>
+      <div className="practice-result-body">
+        <h2>本轮结果 · {completed.chord.name}</h2>
+        <p>{completed.results.filter(result => result.correct === true).length}/{completed.results.filter(result => result.correct !== null).length} 根弦音高符合目标</p>
+        <p role="status" className={saved ? 'success' : 'error-text'}>{saved ? '本轮已保存' : '本轮未保存，当前结果仍保留'}</p>
+        {!saved && <p className="error-box" role="alert">{error}</p>}
+        <ol className="result-list">{completed.results.map(result => <li key={result.string}><span>第 {result.string} 弦</span><span>{result.targetMidi === null ? '不弹／未检测' : `${midiNote(result.targetMidi)} · ${result.correct ? '音高符合目标 ✓' : '音高不符 !'}`}</span></li>)}</ol>
+        {!saved && <div className="result-secondary-actions"><Button variant="outline" onClick={onHistory}>查看并清理旧记录</Button><Button variant="outline" onClick={again}>再练一轮</Button></div>}
+      </div>
+      <PageActions page="practice">{saved ? <Button className="primary-action" onClick={again}>再练一轮</Button> : <><Button className="primary-action" onClick={() => save(completed)}>重试保存</Button><Button variant="outline" onClick={() => downloadJson('guitar-learn-result.json', recordFile([completed]))}>导出本次结果</Button></>}</PageActions>
     </> : <>
-      <section className="strings practice-strings" aria-label="逐弦检测进度">{selected.frets.map((fret, i) => <div key={i} className={`string-lane ${round?.index === i ? 'current' : ''}`}>
-        <span className="string-number">{6 - i}</span><div className="wire" />
-        <span className="quiet-note">{fret === null ? '不弹' : midiNote(openMidi[i] + fret)}</span>
-        <span className="step-icon">{fret === null ? <Minus size={16} aria-label="未检测" /> : round?.results[i] ? round.results[i]!.correct ? <Check size={16} aria-label="符合目标" /> : <CircleAlert size={16} aria-label="音高不符" /> : '待测'}</span>
-      </div>)}</section>
-      {round ? <>
-        <p className="target-pitch">第 {6 - round.index} 弦 · 目标 {midiNote(openMidi[round.index] + round.chord.frets[round.index]!)}</p>
-        <div className="live-pitch" aria-label="检测实际音高">{reading?.note ?? '—'}<small>{reading ? `${reading.cents > 0 ? '+' : ''}${reading.cents.toFixed(1)} 音分` : ''}</small></div>
-        <h2 className={correctLive ? 'success' : ''}>{requesting ? '等待麦克风授权' : reading ? correctLive ? '音高符合目标' : '音高不符' : '等待弹奏／请单独重弹'}</h2>
-        <p className="muted">{round.results.filter(result => result?.correct !== null && result !== null).length}/{round.chord.frets.filter(fret => fret !== null).length} 根发声弦已检测</p>
-        {activeResult && !reading && <p className="muted">本弦已有有效结果，可重测或继续；不代表正在检测到声音。</p>}
-        <div className="stack">{nextExists ? <Button onClick={advance} disabled={!activeResult || requesting}>下一弦</Button> : <Button onClick={finish} disabled={!allMeasured || requesting}>完成并保存</Button>}<Button variant="outline" onClick={remeasure} disabled={requesting}>重测本弦</Button><Button variant="outline" onClick={() => abandon('本轮未保存')}>退出本轮</Button></div>
-      </> : <div className="stack"><p className="muted">仅检查音高，不验证手型、实际发声弦或消音。</p><Button onClick={() => void start()}><Mic size={18} />{error ? '重试麦克风' : '开始逐弦检测'}</Button></div>}
+      <div className="practice-work">
+        {error ? <section className="error-state" role="alert"><CircleAlert aria-hidden="true" /><h2>无法使用麦克风</h2><p>{error}</p></section> : round ? <>
+          <section className="practice-current">
+            <p className="target-pitch">第 {6 - round.index} 弦 · 目标 {midiNote(openMidi[round.index] + round.chord.frets[round.index]!)}</p>
+            <div className="live-pitch" aria-label="检测实际音高">{reading?.note ?? '—'}<small>{reading ? `${reading.cents > 0 ? '+' : ''}${reading.cents.toFixed(1)} 音分` : ''}</small></div>
+            <h2 className={correctLive ? 'success' : ''}>{requesting ? '等待麦克风授权' : reading ? correctLive ? '音高符合目标' : '音高不符' : '等待弹奏／请单独重弹'}</h2>
+            <p className="practice-progress muted">{round.results.filter(result => result?.correct !== null && result !== null).length}/{round.chord.frets.filter(fret => fret !== null).length} 根发声弦已检测</p>
+          </section>
+          {progress}
+          {activeResult && !reading && <p className="muted retained-result">本弦已有有效结果，可重测或继续。</p>}
+        </> : <>{progress}<p className="practice-hint muted">仅检查音高，不验证手型、实际发声弦或消音。</p></>}
+        {notice && <p className="notice" role="status">{notice}</p>}
+      </div>
+      <PageActions page="practice">{round ? <>
+        {nextExists ? <Button className="primary-action" onClick={advance} disabled={!activeResult || requesting}>下一弦</Button> : <Button className="primary-action" onClick={finish} disabled={!allMeasured || requesting}>完成并保存</Button>}
+        <Button variant="outline" onClick={remeasure} disabled={requesting}>重测本弦</Button><Button variant="outline" onClick={() => abandon('本轮未保存')}>退出本轮</Button>
+      </> : <Button className="primary-action" onClick={() => void start()}><Mic size={18} aria-hidden="true" />{error ? '重试麦克风' : '开始逐弦检测'}</Button>}</PageActions>
     </>}
-    {notice && <p className="notice" role="status">{notice}</p>}
-    {error && <p className="error-box" role="alert">{error}</p>}
   </div>
 }
