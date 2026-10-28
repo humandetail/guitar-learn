@@ -1,0 +1,19 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">{{error}}<button class="plain" bindtap="home">返回曲库</button></view>
+  <block wx:if="{{score}}">
+    <view class="row spread"><text class="badge">L{{score.level}} · {{score.key}}</text><button class="plain" bindtap="home">曲库目录</button></view>
+    <view class="title">{{score.title}}</view><view class="h3">{{score.subtitle}}</view><view class="subtitle">{{score.summary}}</view>
+    <view class="panel"><view class="h3">{{score.technique.title}}</view><text wx:for="{{score.technique.steps}}" wx:key="*this" class="paragraph">{{index + 1}}. {{item}}</text></view>
+    <view class="h3">先练熟这些</view><view class="row"><button wx:for="{{score.prerequisites}}" wx:key="lessonId" class="chip" data-id="{{item.lessonId}}" bindtap="lesson">{{item.label}} →</button></view>
+    <view class="panel">
+      <picker range="{{ranges}}" range-key="label" value="{{rangeIndex}}" bindchange="range"><view class="row spread"><text>练习范围</text><text class="badge">{{ranges[rangeIndex].label}} ▾</text></view></picker>
+      <view wx:if="{{score.vocalBars}}" class="row gap"><button class="chip {{mode === 'main' ? 'selected' : ''}}" bindtap="mode" data-mode="main">弹伴奏</button><button class="chip {{mode === 'vocal' ? 'selected' : ''}}" bindtap="mode" data-mode="vocal">学唱旋律</button></view>
+    </view>
+    <tab-score wx:if="{{exercise}}" exercise="{{exercise}}"/>
+    <view wx:if="{{score.lyrics}}" class="panel"><view class="h3">{{score.lyrics.title}}</view><text wx:for="{{score.lyrics.lines}}" wx:key="*this" class="paragraph">{{item}}</text><text class="muted small">{{score.lyrics.note}}</text></view>
+    <view wx:if="{{score.route === 'singing'}}"><view class="h2">这段用到的和弦</view><chord-diagram wx:for="{{chordNames}}" wx:key="*this" name="{{item}}"/></view>
+    <view class="h2">慢练提醒</view><text wx:for="{{score.tips}}" wx:key="*this" class="paragraph">{{item}}</text>
+    <view class="panel"><view class="h3">准备好再进阶</view><text wx:for="{{score.readiness}}" wx:key="*this" class="paragraph">{{item}}</text><text class="muted small">请自己对照确认，本页不自动判定演奏达标。</text></view>
+    <view class="h3">曲谱来源</view><text class="muted">{{score.sourceNote}}</text><button wx:for="{{score.source}}" wx:key="url" class="plain" data-url="{{item.url}}" bindtap="source">复制来源链接 · {{item.label}}</button>
+  </block>
+</view>

@@ -1,0 +1,27 @@
+<view class="panel">
+  <block wx:if="{{kind === 'anatomy'}}">
+    <view class="h3">点名称，在琴上找位置</view>
+    <canvas canvas-id="guitar-anatomy" style="width:220px;height:410px;margin:0 auto" aria-label="原声吉他正面图，蓝点为{{selected.name}}"/>
+    <view class="row"><button wx:for="{{parts}}" wx:key="id" class="chip {{selected.id === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="select">{{item.name}}</button></view>
+    <view class="h3 gap">{{selected.name}}</view><text class="paragraph">在哪里：{{selected.where}}</text><text class="paragraph">做什么：{{selected.purpose}}</text>
+  </block>
+  <block wx:elif="{{kind === 'strings'}}"><view class="h3">从粗到细，6 → 1 弦</view><view wx:for="{{strings}}" wx:key="*this" class="paragraph">{{item}}</view></block>
+  <block wx:elif="{{kind === 'frets'}}"><view class="h3">琴头 → 琴身</view><view class="fret-demo"><view>琴枕</view><view>第1品</view><view>第2品</view><view>第3品</view></view><view class="muted gap">按在格内，靠近右侧品丝，不压住金属条。0 是空弦。</view></block>
+  <chord-diagram wx:elif="{{kind === 'em' || kind === 'am'}}" name="{{kind === 'em' ? 'Em' : 'Am'}}"/>
+  <block wx:elif="{{kind === 'notation'}}">
+    <view class="h3">同一个“2”，读法不一样</view>
+    <view class="paragraph"><text class="badge">六线谱 TAB</text> 数字是品位：1 弦线上的 2，按 1 弦第 2 品。</view>
+    <view class="mini-tab"><view>1 ─── 2 ───</view><view>2 ────────</view><view>3 ────────</view><view>4 ────────</view><view>5 ────────</view><view>6 ────────</view></view>
+    <view class="paragraph"><text class="badge">和弦指法图</text> 圆点里的 2 是中指；圆点位置才决定按哪一弦、哪一品。</view><chord-diagram name="Em"/>
+    <view class="paragraph"><text class="badge">简谱</text> 1=C 时，1 2 3 是 do re mi。2 是 re（D音），不是第 2 品。</view>
+  </block>
+  <block wx:else>
+    <view class="h3">4/4 拍：每小节数四拍</view><view class="fret-demo"><view>1
+弹</view><view>2
+停</view><view>3
+弹</view><view>4
+延续</view></view>
+    <text class="paragraph">四分音符：弹一次，持续 1 拍。二分音符：弹一次，持续 2 拍。四分休止：安静 1 拍。</text>
+    <text class="muted">不是每个数字都要重新拨弦，长音要数够拍数。</text>
+  </block>
+</view>

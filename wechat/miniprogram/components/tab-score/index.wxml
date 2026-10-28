@@ -1,0 +1,21 @@
+<view wx:if="{{current}}" class="score">
+  <view class="h2">{{exercise.title}}</view><view wx:if="{{exercise.description}}" class="muted">{{exercise.description}}</view>
+  <view class="muted small gap">上 1 弦、下 6 弦。数字是品位，0 是空弦；从左往右弹。半拍数“数字、和”，1.5 拍是一拍半。</view>
+  <view class="toolbar">
+    <view class="row spread"><picker range="{{speeds}}" value="{{speedIndex}}" bindchange="speed"><view class="badge">{{bpm}} BPM · 调速 ▾</view></picker><button class="primary" bindtap="play">{{playing ? '停止示范' : '听合成示范'}}</button></view>
+    <view class="current-action" aria-live="polite">第 {{current.bar}} 小节 · 数“{{current.count}}”<text class="action-text">{{current.description}}</text></view>
+  </view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view wx:for="{{rows}}" wx:key="id" wx:for-item="row" id="score-row-{{row.id}}" class="score-row">
+    <view class="muted small">第 {{row.bar}} 小节{{row.continuation ? '（接上一行）' : ''}}</view>
+    <view class="staff">
+      <view class="string-labels"><view wx:for="{{labels}}" wx:key="*this">{{item}}弦</view></view>
+      <button wx:for="{{row.columns}}" wx:key="index" wx:for-item="column" class="column {{column.index === selected ? 'active' : ''}}" data-index="{{column.index}}" bindtap="choose" aria-label="{{column.description}}">
+        <view wx:for="{{column.strings}}" wx:key="string" wx:for-item="string" class="string"><text wx:if="{{string.fret !== ''}}" class="fret {{string.role}}">{{string.fret}}</text></view>
+        <view class="duration">{{column.rest ? '休止 ' : ''}}{{column.beats}}拍</view><view class="lyric">{{column.lyric || column.chord}}</view>
+      </button>
+    </view>
+  </view>
+  <view class="actions"><button bindtap="previous" disabled="{{selected === 0}}">上一列</button><button bindtap="next" disabled="{{selected === exercise.events.length - 1}}">下一列</button></view>
+  <view class="muted small gap">示范为合成琴音，没有人声，也不自动判断你是否弹对。离开页面会停止。</view>
+</view>

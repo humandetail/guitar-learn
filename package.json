@@ -11,6 +11,9 @@
     "test:audio": "node --experimental-strip-types scripts/check-audio.ts",
     "ios:bundle": "node scripts/build-ios-detector.mjs",
     "ios:check": "node scripts/build-ios-detector.mjs --check && node --test ios/Tests/detector.test.mjs && bash ios/check-native.sh",
+    "wechat:data": "node scripts/build-wechat-data.mjs",
+    "wechat:check": "node scripts/build-wechat-data.mjs --check && node --test wechat/tests/*.test.cjs",
+    "wechat:templates": "node scripts/check-wechat-templates.mjs",
     "lint": "oxlint src tests scripts vite.config.ts playwright.config.ts"
   },
   "dependencies": {

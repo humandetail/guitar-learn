@@ -1,0 +1,29 @@
+<view class="page">
+  <button wx:if="{{returnLesson}}" class="plain" bindtap="returnToLesson">← 返回课程 · {{returnLesson.title}}</button>
+  <view class="title">给每天的练习，一点帮助。</view>
+  <view class="row"><button wx:for="{{modes}}" wx:key="id" class="chip {{mode === item.id ? 'selected' : ''}}" data-mode="{{item.id}}" bindtap="mode">{{item.label}}</button></view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <block wx:if="{{mode === 'metronome'}}">
+    <view class="panel hero"><view class="tempo">{{bpm}}<text class="muted"> BPM</text></view><view class="muted">每分钟拍数 · 初学从 60 开始</view>
+      <view class="row gap"><view wx:for="{{dots}}" wx:key="*this" class="beat-dot {{activeBeat === item ? 'lit' : ''}}">{{item + 1}}</view></view>
+    </view>
+    <slider min="30" max="240" step="1" value="{{bpm}}" show-value bindchange="tempo" activeColor="#254dff" aria-label="节拍器速度"/>
+    <view class="h3">每小节拍数</view><view class="row"><button wx:for="{{beatOptions}}" wx:key="*this" class="chip {{beats === item ? 'selected' : ''}}" data-beats="{{item}}" bindtap="beat">{{item}} 拍</button></view>
+    <view class="h3 gap">每拍细分</view><view class="row"><button wx:for="{{subdivisions}}" wx:key="value" class="chip {{subdivision === item.value ? 'selected' : ''}}" data-value="{{item.value}}" bindtap="subdivision">{{item.label}}</button></view>
+    <button class="primary wide gap" bindtap="play">{{playing ? '停止节拍' : '开始节拍'}}</button>
+    <text class="paragraph muted">先跟着数拍或拍手，再每拍拨一次空弦。第一拍声音更高。修改设置会停止，点击开始重新起拍。</text>
+  </block>
+  <block wx:elif="{{mode === 'chords'}}">
+    <view class="h2">先按清楚，再连起来</view><view class="row"><button wx:for="{{chords}}" wx:key="id" class="chip {{chordName === item.name ? 'selected' : ''}}" bindtap="chord" data-name="{{item.name}}">{{item.name}}</button></view>
+    <chord-diagram name="{{chordName}}"/><button class="primary wide" bindtap="listenChord">听 {{chordName}} 合成参考音</button>
+    <button wx:if="{{playing}}" class="secondary wide gap" bindtap="stop">停止参考音</button>
+    <text class="paragraph muted">逐弦慢拨，听有没有闷音。此版本提供指法与参考音，不自动检测你是否按对。</text>
+  </block>
+  <block wx:else>
+    <view class="h2">标准调弦：从粗到细</view><text class="paragraph">先用独立调音器把六根弦调准，再开始课程。下方声音只用于熟悉各弦音高，不会听取或判断你的琴音。</text>
+    <button wx:for="{{strings}}" wx:key="string" class="list-item" bindtap="reference" data-string="{{item.string}}"><view class="row spread"><text>第 {{item.string}} 弦 · {{item.note}}</text><text class="badge">听参考音</text></view></button>
+    <button wx:if="{{playing}}" class="secondary wide gap" bindtap="stop">停止参考音</button>
+    <text class="paragraph muted">A4 = 440 Hz。不要只凭音量大小调弦，也不要大幅转弦钮。参考音不替代准确的调音器。</text>
+  </block>
+  <view class="divider"/><view class="muted small">声音在本机合成，不需要联网。切页或锁屏后停止，回到小程序需手动开始。当前版本不申请麦克风、不录音、不上传练习数据。</view>
+</view>

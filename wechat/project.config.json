@@ -1,0 +1,9 @@
+{
+  "description": "六弦 · 零基础吉他学习",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "guitar-learn",
+  "setting": { "es6": true, "enhance": true, "minified": true, "postcss": true, "urlCheck": true },
+  "packOptions": { "ignore": [], "include": [] }
+}

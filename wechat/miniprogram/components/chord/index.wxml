@@ -1,0 +1,11 @@
+<view wx:if="{{chord}}" class="chord-box">
+  <view class="h3">{{chord.name}} 和弦</view>
+  <view class="chord-grid">
+    <view wx:for="{{strings}}" wx:key="string" class="chord-string">
+      <view class="string-name">{{item.string}}弦</view><view class="open">{{item.top}}</view>
+      <view wx:for="{{item.cells}}" wx:for-item="cell" wx:key="position" class="chord-cell {{cell.position === 1 ? 'nut' : ''}}"><text wx:if="{{cell.active}}" class="finger">{{cell.finger}}</text></view>
+    </view>
+  </view>
+  <view class="muted small gap">× 不弹 · ○ 空弦
+圆点内是手指：1 食指、2 中指、3 无名指、4 小指。由上往下数第 1–4 品。</view>
+</view>

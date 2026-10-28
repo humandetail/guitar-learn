@@ -1,0 +1,11 @@
+<view class="page">
+  <view class="eyebrow">四首旋律 · 十二份编配</view><view class="title">让第一首，走得远一点。</view><view class="subtitle">零基础从 L1 单音开始，同一首曲子也可以一路练到弹唱和指弹。分级是学习顺序，不对应考级。</view>
+  <view class="row gap"><button wx:for="{{routes}}" wx:key="id" class="chip {{route === item.id ? 'selected' : ''}}" data-route="{{item.id}}" bindtap="route">{{item.label}}</button></view>
+  <view class="row gap"><button class="chip {{level === 0 ? 'selected' : ''}}" data-level="0" bindtap="level">全部级别</button><button wx:for="{{levels}}" wx:key="level" class="chip {{level === item.level ? 'selected' : ''}}" data-level="{{item.level}}" bindtap="level">L{{item.level}} · {{item.title}}</button></view>
+  <view class="muted small gap">找到 {{items.length}} 份编配</view>
+  <button wx:for="{{items}}" wx:key="id" class="list-item" data-id="{{item.id}}" bindtap="open">
+    <view class="row spread"><text class="h3">{{item.title}}</text><text class="badge">L{{item.level}}</text></view><view>{{item.subtitle}}</view><view class="muted small">{{item.focus}}</view>
+  </button>
+  <view wx:if="{{!items.length}}" class="empty">这个组合暂时没有曲谱。<button class="plain" bindtap="clear">查看全部曲谱</button></view>
+  <view class="muted small gap">历史旋律，本项目编配；中文练习词为原创。来源与具体版本见每份曲谱。</view>
+</view>

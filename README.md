@@ -1,5 +1,7 @@
 # Guitar Learn
 
+新增 [微信小程序版](wechat/README.md)：14 课、9 练习、五级曲库、内置和弦与节拍器。用微信开发者工具导入 `wechat`；配置自己的 AppID 后可进入扫码预览流程，不需要 Xcode。当前已做逻辑与模板语法检查，微信运行及 iPhone 真机验收待完成。[微信待验收 Tickets](docs/verification/wechat-app.md)。
+
 新增 [iOS 原生音频验证版](ios/README.md)：第 6 弦 E2 调音与基础 4/4 节拍器，工程位于 `ios/GuitarLearn.xcodeproj`。当前 Mac 缺少完整 Xcode / iOS SDK，尚未完成 iPhone 编译安装和真机验收；课程、曲库仍在下述 Web 版，待音频验证后迁入。[iOS 待验收 Tickets](docs/verification/ios-app.md)。
 
 移动端优先的浏览器吉他学习与练习工作台。首次打开进入“学习”，14 节课程从整把琴的部位、持琴与调音开始，经过节拍、读谱、单音、爬格子与短旋律，再学习和弦伴奏、边弹边唱和旋律加低音的独奏入门。原有调音器、节拍器、和弦库与逐弦检测仍可独立使用。
@@ -24,6 +26,10 @@ pnpm dev
 ```
 
 本机 Chrome 打开 http://localhost:5173/ 。麦克风仅在主动启动后申请，音频只在当前浏览器处理，不录音、不上传。数据保存在 localStorage，换浏览器或清理网站数据后不能自动恢复，建议定期备份。手机收音需要设备信任的 HTTPS，普通 HTTP 局域网地址不能用于手机麦克风验收。
+
+## GitHub Pages 部署
+
+已配置 [GitHub Actions 自动部署](.github/workflows/deploy-pages.yml)：推送 `main` 自动检查、构建并发布网页版，支持手动运行，自动适配仓库子路径。首次在仓库 **Settings → Pages → Source** 选择 **GitHub Actions**。完整步骤见 [Pages 部署指南](docs/github-pages.md)。
 
 ## 定向验证
 

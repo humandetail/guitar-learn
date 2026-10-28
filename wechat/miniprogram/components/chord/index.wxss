@@ -1,0 +1,8 @@
+.chord-box { margin: 16px 0; padding: 16px; background: white; border: 1px solid #dde3ef; border-radius: 12px; }
+.chord-grid { display: flex; padding: 0 8px; max-width: 320px; margin: 0 auto; }
+.chord-string { flex: 1; text-align: center; }.string-name { font-size: 11px; color: #59677e; }
+.open { height: 28px; line-height: 28px; color: #254dff; }
+.chord-cell { height: 34px; border-bottom: 1px solid #a9b6ca; position: relative; display: flex; align-items: center; justify-content: center; }
+.chord-cell::before { content: ''; position: absolute; width: 1px; height: 100%; top: 0; left: 50%; background: #a9b6ca; }
+.chord-cell.nut { border-top: 4px solid #59677e; }
+.finger { position: relative; z-index: 1; width: 25px; height: 25px; line-height: 25px; border-radius: 50%; color: #fff; background: #254dff; font-size: 14px; }

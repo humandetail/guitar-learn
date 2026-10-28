@@ -1,0 +1,16 @@
+.score { margin-top: 22px; }
+.current-action { font-size: 12px; margin-top: 10px; color: #59677e; }
+.action-text { display: block; font-size: 14px; line-height: 1.65; color: #182138; max-height: 110px; overflow-y: auto; }
+.score-row { margin: 22px 0; }
+.staff { display: flex; margin-top: 8px; border-right: 2px solid #98a8c1; }
+.string-labels { width: 28px; flex-shrink: 0; font-size: 11px; color: #59677e; }
+.string-labels view, .string { height: 25px; line-height: 25px; }
+button.column { flex: 1; min-width: 0; padding: 0; border-radius: 0; background: transparent; overflow: visible; }
+button.column.active { background: #dce5ff; }
+.string { position: relative; font-size: 17px; font-weight: 600; }
+.string::before { content: ''; position: absolute; top: 12px; left: 0; right: 0; height: 1px; background: #a9b6ca; }
+.fret { position: relative; padding: 0 4px; background: #f4f6fb; min-width: 18px; }
+.active .fret { background: #dce5ff; color: #254dff; }
+.fret.bass { color: #765a2f; }.fret.fill { color: #66738c; }
+.duration { font-size: 11px; margin-top: 6px; font-weight: 400; }
+.lyric { font-size: 12px; min-height: 21px; }

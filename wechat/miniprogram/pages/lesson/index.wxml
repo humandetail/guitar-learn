@@ -1,0 +1,24 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">{{error}}<button wx:if="{{lesson}}" class="plain" bindtap="retry">重试{{blocked ? '读取' : '保存'}}</button></view>
+  <block wx:if="{{lesson}}">
+    <view class="eyebrow">{{lesson.section}}</view><view class="title">{{lesson.title}}</view><view class="subtitle">{{lesson.goal}}</view>
+    <view class="row spread gap"><text class="badge">{{step < lesson.steps.length ? '第 ' + (step + 1) + ' / ' + lesson.steps.length + ' 步' : '练习后自查'}}</text><button class="plain" bindtap="home">学习目录</button></view>
+    <block wx:if="{{current}}">
+      <view class="h2">{{current.title}}</view>
+      <text wx:for="{{current.body}}" wx:key="*this" class="paragraph">{{item}}</text>
+      <learning-diagram wx:if="{{current.diagram}}" kind="{{current.diagram}}" />
+      <view wx:if="{{current.tool.target === 'tuner' || current.tool.target === 'practice'}}" class="panel muted">本小程序提供参考音、指法与自查，不收音检测。调弦请配合独立调音器，逐弦检测步骤请自己听辨完成。</view>
+      <tab-score wx:if="{{exercise}}" exercise="{{exercise}}" />
+      <button wx:if="{{current.tool}}" class="secondary wide gap" bindtap="tool">{{current.tool.target === 'practice' ? '查看和弦并逐弦自查' : current.tool.target === 'tuner' ? '查看调弦说明与参考音' : current.tool.label}}</button>
+      <view class="actions"><button disabled="{{step === 0 || blocked}}" bindtap="previous">上一步</button><button class="primary" disabled="{{blocked}}" bindtap="nextStep">{{step === lesson.steps.length - 1 ? '开始自查' : '下一步'}}</button></view>
+    </block>
+    <block wx:else>
+      <view class="h2">拿起琴，确认你会了</view><text class="muted">勾选表示你已自己检查，不会自动识别动作或音准。</text>
+      <checkbox-group bindchange="check"><label wx:for="{{checks}}" wx:key="index" class="check"><checkbox value="{{item.value}}" checked="{{item.checked}}" disabled="{{blocked}}" color="#254dff"/><text class="grow">{{item.text}}</text></label></checkbox-group>
+      <button class="primary wide" disabled="{{!allChecked || blocked || completed}}" bindtap="complete">{{completed ? '本课已完成自查' : '标记本课完成'}}</button>
+      <button wx:if="{{completed && next}}" class="secondary wide gap" bindtap="nextLesson">下一课 · {{next.title}}</button>
+      <button class="plain" bindtap="previous">回到练习</button>
+    </block>
+  </block>
+  <button wx:else class="primary wide" bindtap="home">返回学习目录</button>
+</view>
