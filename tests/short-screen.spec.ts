@@ -31,6 +31,7 @@ for (const viewport of viewports) {
   test(`${viewport.width}x${viewport.height} 六弦与各模块主操作保持首屏可用`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport)
     await page.goto('/')
+    await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
     const strings = page.getByRole('region', { name: '选择目标弦' })
     const widths = await strings.evaluate(element => ({ documentWidth: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth, stringsWidth: element.scrollWidth, stringsClient: element.clientWidth }))
     expect.soft(widths.documentWidth, JSON.stringify(widths)).toBeLessThanOrEqual(widths.viewport)

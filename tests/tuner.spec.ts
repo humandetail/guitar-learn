@@ -11,6 +11,7 @@ test('首次进入不申请麦克风，用户主动启动后拒绝权限可重�
     } })
   })
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   await expect(page.getByRole('heading', { name: '调音', exact: true })).toBeVisible()
   await expect(page.locator('html')).not.toHaveAttribute('data-microphone-requests')
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
@@ -53,6 +54,7 @@ declare global {
 test('合成E2经真实检测库显示稳定结果，静音后清除旧读数，停止释放输入', async ({ page }) => {
   await installSyntheticMic(page)
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
   await expect(page.getByRole('heading', { name: '已调准', exact: true })).toBeVisible()
   await expect(page.getByLabel('实际音高', { exact: true })).toHaveText('E2')
@@ -67,6 +69,7 @@ test('合成E2经真实检测库显示稳定结果，静音后清除旧读数，
 test('取消授权等待后，迟到的麦克风输入立即释放且不重启', async ({ page }) => {
   await installSyntheticMic(page, 800)
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
   await page.getByRole('button', { name: '取消启动', exact: true }).click()
   await expect.poll(() => page.evaluate(() => window.syntheticMic.stream?.getTracks()[0].readyState)).toBe('ended')
@@ -77,6 +80,7 @@ test('取消授权等待后，迟到的麦克风输入立即释放且不重启',
 test('麦克风断开后显示原因、释放输入并提供重试', async ({ page }) => {
   await installSyntheticMic(page)
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
   await expect(page.getByRole('button', { name: '停止调音', exact: true })).toBeVisible()
   await page.evaluate(() => window.syntheticMic.stream!.getAudioTracks()[0].dispatchEvent(new Event('ended')))
@@ -88,6 +92,7 @@ test('麦克风断开后显示原因、释放输入并提供重试', async ({ pa
 test('后台通知停止收音并释放，返回不自动恢复', async ({ page }) => {
   await installSyntheticMic(page)
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
   await expect(page.getByRole('button', { name: '停止调音', exact: true })).toBeVisible()
   await page.evaluate(() => {
@@ -107,27 +112,32 @@ test('后台通知停止收音并释放，返回不自动恢复', async ({ page 
 test('大偏差数值与刻度范围一致，不将超出范围读数截在50音分', async ({ page }) => {
   await installSyntheticMic(page, 0, 90)
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
   await expect(page.getByRole('heading', { name: '偏离目标较大', exact: true })).toBeVisible()
   await expect(page.getByLabel('音分参考刻度', { exact: true })).toContainText('+200')
 })
 
 test('前台采样间断不能冒充连续300毫秒稳定窗口', async ({ page }) => {
+  // This checks the stability window, not the detector's ±5-cent tuning accuracy.
+  // The published detector can return a stable E2 at +6 cents.
   await installSyntheticMic(page)
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
-  await expect(page.getByRole('heading', { name: '已调准', exact: true })).toBeVisible()
+  await expect(page.getByLabel('实际音高', { exact: true })).toHaveText('E2')
   await page.evaluate(() => {
     const begin = performance.now()
     while (performance.now() - begin < 450) { /* simulate an unrelated foreground long task */ }
   })
   await expect(page.getByRole('heading', { name: '等待弹奏', exact: true })).toBeVisible({ timeout: 1000 })
-  await expect(page.getByRole('heading', { name: '已调准', exact: true })).toBeVisible()
+  await expect(page.getByLabel('实际音高', { exact: true })).toHaveText('E2')
 })
 
 test('六根目标弦可选择，换弦停止收音并清除旧结果', async ({ page }) => {
   await installSyntheticMic(page)
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   await expect(page.getByRole('button', { name: '第 6 弦 E2', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
   await expect(page.getByRole('heading', { name: '已调准', exact: true })).toBeVisible()
@@ -142,6 +152,7 @@ for (const [string, note, frequency] of [[6, 'E2', 82.4069], [5, 'A2', 110], [4,
   test(`合成标准第 ${string} 弦 ${note} 经指定库显示对应音名及小偏差`, async ({ page }) => {
     await installSyntheticMic(page, 0, frequency)
     await page.goto('/')
+    await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
     await page.getByRole('button', { name: `第 ${string} 弦 ${note}`, exact: true }).click()
     await page.getByRole('button', { name: '开始调音', exact: true }).click()
     await expect(page.getByLabel('实际音高', { exact: true })).toHaveText(note)

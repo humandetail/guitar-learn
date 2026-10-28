@@ -6,7 +6,7 @@ import { MetronomeClock, type Rhythm } from './metronome-clock'
 import { PageActions } from './PageActions'
 
 const sameRhythm = (a: Rhythm, b: Rhythm) => a.bpm === b.bpm && a.beats === b.beats && a.subdivision === b.subdivision
-export default function Metronome({ settings, onChange }: { settings: Settings; onChange: (patch: Partial<Settings>) => void }) {
+export default function Metronome({ settings, onChange, learning = false }: { settings: Settings; onChange: (patch: Partial<Settings>) => void; learning?: boolean }) {
   const [running, setRunning] = useState(false)
   const [applied, setApplied] = useState<Rhythm>(settings)
   const [step, setStep] = useState(0)
@@ -30,6 +30,7 @@ export default function Metronome({ settings, onChange }: { settings: Settings; 
     setStep(0)
     setNotice(message)
   }
+  useEffect(() => { if (learning) stop() }, [learning])
   useEffect(() => {
     const sync = () => {
       const active = isMicrophoneActive()

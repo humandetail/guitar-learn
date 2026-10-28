@@ -28,6 +28,7 @@ test('短屏授权等待可取消，权限失败后同位重试且错误原因�
     } })
   })
   await page.goto('/')
+  await page.getByRole('navigation', { name: '练习模块' }).getByRole('button', { name: '调音', exact: true }).click()
   const y = await dock(page)
   await page.getByRole('button', { name: '开始调音', exact: true }).click()
   await expect(page.getByRole('button', { name: '取消启动', exact: true })).toBeVisible()

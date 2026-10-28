@@ -6,6 +6,7 @@ const voices = new Set<OscillatorNode>()
 let playbackChanged: ((playing: boolean) => void) | null = null
 function ended() { const notify = playbackChanged; playbackChanged = null; notify?.(false) }
 function stop() { generation++; ended(); voices.forEach(voice => { try { voice.stop() } catch { /* already ended */ } }); voices.clear() }
+export const stopReferenceAudio = stop
 registerReferenceStop(stop)
 if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.hidden) stop() })
 export async function playChord(chord: Chord, reference: number, index?: number, onPlaybackChange?: (playing: boolean) => void) {

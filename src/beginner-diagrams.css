@@ -1,0 +1,61 @@
+.beginner-diagram { min-width: 0; margin: 0; color: #26334a; }
+.beginner-diagram p { margin: 0; overflow-wrap: anywhere; }
+.beginner-diagram figcaption { color: #55627a; font-size: 14px; line-height: 1.75; margin-top: 12px; }
+.anatomy-heading { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 14px; line-height: 1.6; }
+.anatomy-heading span { color: #55627a; }
+.anatomy-explorer { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 10px; align-items: center; margin: 12px 0; scroll-margin-block: 8px; }
+.anatomy-guitar { display: block; width: 100%; height: 294px; min-width: 0; margin: 0; overflow: visible; }
+.guitar-shape { fill: #e4eaff; stroke: #8c9ebd; stroke-width: 2; }
+.guitar-head, .guitar-neck { fill: #cbd5e7; stroke: #55627a; stroke-width: 1.5; }
+.guitar-fingerboard { fill: #7787a2; stroke: #55627a; stroke-width: 1; }
+.guitar-frets { stroke: #e9eef5; stroke-width: 2; }
+.guitar-tuners { stroke: #55627a; stroke-width: 2; fill: #dce3ee; }
+.guitar-hole { fill: #26334a; stroke: #8c9ebd; stroke-width: 2; }
+.guitar-bridge { fill: #7787a2; stroke: #55627a; stroke-width: 1.5; }
+.guitar-nut { stroke: #f1f4f8; stroke-width: 5; }
+.guitar-strings { fill: none; stroke: #f1f4f8; }
+.anatomy-guitar .part-selected { stroke: #254dff; stroke-width: 4; }
+.anatomy-guitar .guitar-frets.part-selected, .anatomy-guitar .guitar-strings.part-selected { stroke: #254dff; }
+.anatomy-pointer path { fill: none; stroke: #254dff; stroke-width: 1.5; stroke-dasharray: 4 3; }
+.anatomy-pointer circle { fill: #254dff; stroke: #f1f4f8; stroke-width: 2; }
+.anatomy-pointer text { fill: #254dff; font: 600 20px "Noto Sans SC", "PingFang SC", sans-serif; }
+.anatomy-parts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; min-width: 0; }
+.anatomy-parts button { min-width: 0; min-height: 44px; padding: 8px 4px; background: transparent; border: 1px solid #c7d1ec; border-radius: 7px; color: #55627a; font-size: 14px; line-height: 1.4; }
+.anatomy-parts button[aria-pressed=true] { color: #254dff; border-color: #254dff; background: #e4eaff; font-weight: 600; }
+.anatomy-parts button:hover { background: #e4eaff80; }
+.anatomy-description { padding: 14px 0; border-bottom: 1px solid #c7d1ec88; scroll-margin-bottom: 8px; }
+.anatomy-description > strong { display: block; margin-bottom: 7px; color: #182138; font-size: 18px; }
+.anatomy-description p + p { margin-top: 6px; }
+.anatomy-description b { color: #26334a; font-weight: 500; }
+.notation-example { padding: 14px 0; border-bottom: 1px solid #c7d1ec88; }
+.notation-example:first-child { padding-top: 0; }
+.notation-example-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 5px 10px; }
+.notation-example-heading strong { font-size: 16px; }
+.notation-example-heading > span { color: #254dff; font-size: 14px; font-weight: 500; }
+.notation-example svg { display: block; width: 100%; max-height: 132px; margin: 12px auto 8px; }
+.notation-example svg line { stroke: #a6b4ce; }
+.notation-example svg text { fill: #55627a; font-size: 14px; font-family: inherit; }
+.notation-example svg .notation-blue-number { fill: #254dff; font: 600 25px ui-monospace, monospace; }
+.notation-example svg .notation-finger { fill: white; font: 600 19px ui-monospace, monospace; }
+.notation-example p { font-size: 15px; line-height: 1.8; }
+.numbered-notation { display: flex; align-items: center; gap: 24px; padding: 18px 0; }
+.numbered-notation > span { color: #55627a; font: 15px ui-monospace, monospace; }
+.numbered-notation > div { display: flex; gap: 24px; }
+.numbered-notation > div > * { display: flex; flex-direction: column; align-items: center; gap: 6px; font: 500 30px ui-monospace, monospace; }
+.numbered-notation strong { color: #254dff; }
+.numbered-notation small { font-size: 14px; }
+.rhythm-context { display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 1.7; }
+.rhythm-context > span { color: #55627a; }
+.rhythm-value-list { display: flex; flex-direction: column; margin: 10px 0 18px; }
+.rhythm-value-list > div { display: grid; grid-template-columns: 42px minmax(0, 1fr); column-gap: 12px; align-items: center; min-height: 82px; border-bottom: 1px solid #c7d1ec88; }
+.rhythm-note-symbol { grid-row: span 2; display: block; width: 42px; height: 58px; color: #254dff; }
+.rhythm-value-list strong { align-self: end; font-size: 16px; font-weight: 500; }
+.rhythm-value-list > div > span { align-self: start; font-size: 14px; line-height: 1.7; color: #55627a; }
+.rhythm-measure { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.rhythm-measure > div { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 2px; border-radius: 6px; background: #e4eaff; font-size: 14px; }
+.rhythm-measure b { font: 500 21px ui-monospace, monospace; color: #55627a; }
+.rhythm-attack { color: #254dff; font-weight: 600; }
+.rhythm-rest { color: #55627a; }
+@media (min-width: 300px) and (max-height: 700px) { .anatomy-parts { grid-template-columns: repeat(3, minmax(0, 1fr)); } .anatomy-guitar { height: 220px; } }
+@media (prefers-reduced-motion: no-preference) { .anatomy-parts button { transition: background-color 160ms, border-color 160ms, color 160ms; } .anatomy-parts button:active { transform: scale(.98); } }
+@media (max-width: 260px) { .anatomy-explorer { grid-template-columns: minmax(0, 1fr); gap: 12px; } .anatomy-guitar { max-height: 260px; } .numbered-notation { flex-wrap: wrap; gap: 12px; } .numbered-notation > div { gap: 18px; } .rhythm-measure { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

@@ -27,7 +27,10 @@ h2 { font-size: 18px; font-weight: 600; line-height: 1.4; }
 .page-actions > button, .page-actions > .chord-actions > button { flex: 1; min-width: 44px; padding-left: 10px; padding-right: 10px; white-space: normal; line-height: 1.3; }
 .page-actions > .primary-action { flex: 1.2; }
 .page-actions > .chord-actions { display: flex; flex: 1; gap: 8px; }
-.bottom-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; min-height: calc(64px + env(safe-area-inset-bottom)); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid #c7d1ec; }
+.bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; min-height: calc(64px + env(safe-area-inset-bottom)); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid #c7d1ec; }
+.lesson-return { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 8px; padding-right: 48px; color: #254dff; text-align: left; font-size: 14px; }
+.lesson-return svg { flex-shrink: 0; }
+.lesson-tool-content .page-screen:not([hidden]) { min-height: calc(100% - 52px); }
 .bottom-nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 48px; min-width: 44px; color: #55627a; font-size: 12px; border-radius: 8px; }
 .bottom-nav button[aria-current=page] { color: #254dff; background: #e4eaff; }
 .keyboard-open .bottom-nav { display: none; }

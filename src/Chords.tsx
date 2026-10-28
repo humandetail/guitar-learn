@@ -8,7 +8,7 @@ import { downloadJson, localDataWarning } from './storage'
 import { playChord } from './reference-audio'
 import { validateChord, type Chord, type Settings } from './model'
 
-export default function Chords({ active = true, settings, customChords, onChange, onPractice }: { active?: boolean; settings: Settings; customChords: Chord[]; onChange: (next: Chord[]) => void; onPractice: (chord: Chord) => void }) {
+export default function Chords({ active = true, requestedChord, settings, customChords, onChange, onPractice }: { active?: boolean; requestedChord?: { id: string } | null; settings: Settings; customChords: Chord[]; onChange: (next: Chord[]) => void; onPractice: (chord: Chord) => void }) {
   const latest = useRef({ customChords, onChange }); latest.current = { customChords, onChange }
   const readingRef = useRef(false)
   const generation = useRef(0)
@@ -27,6 +27,11 @@ export default function Chords({ active = true, settings, customChords, onChange
   }
   const [draft, setDraft] = useState<Chord | null>(null)
   const [management, setManagement] = useState(false)
+  useEffect(() => {
+    if (!requestedChord) return
+    if (draft && !window.confirm('有尚未保存的和弦编辑，确定放弃并查看课程和弦？')) return
+    setDraft(null); setManagement(false); setSelected(requestedChord.id); setError(''); setNotice('')
+  }, [requestedChord])
   const picker = useRef<HTMLDivElement>(null)
   const pickerScroll = useRef(0)
   useLayoutEffect(() => { if (picker.current) picker.current.scrollTop = pickerScroll.current }, [management, draft])

@@ -124,7 +124,7 @@ test('设置进入管理后，仍可返回原练习；损坏存档不会被新�
   expect(await page.evaluate(() => localStorage.getItem('guitar-learn.records.v1'))).toBe('{broken-original')
   await page.getByRole('button', { name: '返回', exact: true }).click()
   await page.getByRole('button', { name: '返回练习', exact: true }).click()
-  await expect(page.getByRole('heading', { name: '调音', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '学习', exact: true })).toHaveAttribute('aria-current', 'page')
 })
 
 

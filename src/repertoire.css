@@ -1,0 +1,87 @@
+.repertoire-screen { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding-bottom: 8px; }
+.repertoire-screen h1 { font-size: 26px; line-height: 1.4; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.repertoire-screen p { margin: 0; overflow-wrap: anywhere; }
+.repertoire-screen > .learning-back { align-self: flex-start; }
+.repertoire-title { display: flex; gap: 10px; align-items: center; }
+.repertoire-title > svg { color: #254dff; flex-shrink: 0; }
+.repertoire-intro { color: #55627a; font-size: 16px; line-height: 1.8; }
+.repertoire-list { padding: 0; margin: 0; list-style: none; }
+.repertoire-list > li { border-bottom: 1px solid #c7d1ec; }
+.repertoire-list > li:first-child { border-top: 1px solid #c7d1ec; }
+.repertoire-list button { display: grid; grid-template-columns: 28px minmax(0, 1fr) 18px; align-items: start; gap: 12px; width: 100%; min-height: 44px; padding: 22px 0; border-radius: 6px; text-align: left; }
+.repertoire-list button:hover { background: #e4eaff80; }
+.repertoire-order { font: 500 20px/1.5 ui-monospace, monospace; color: #254dff; }
+.repertoire-list button > svg { color: #55627a; margin-top: 5px; }
+.repertoire-list-copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.repertoire-list-copy > strong { font-size: 19px; line-height: 1.45; color: #182138; }
+.repertoire-list-copy > span { font-size: 14px; line-height: 1.75; color: #26334a; }
+.repertoire-list-copy > .repertoire-list-version { color: #254dff; font-size: 13px; }
+.repertoire-list-copy > small { color: #55627a; font-size: 13px; line-height: 1.7; }
+.repertoire-library-note, .repertoire-meta, .repertoire-mode-note { color: #55627a; font-size: 14px; line-height: 1.8; }
+.repertoire-song-heading { display: flex; flex-direction: column; gap: 6px; }
+.repertoire-song-heading > p { color: #254dff; font-size: 13px; line-height: 1.7; }
+.repertoire-detail > .repertoire-meta { margin-top: -8px; }
+.repertoire-score-controls { display: flex; flex-direction: column; gap: 12px; min-width: 0; scroll-margin-top: 12px; }
+.repertoire-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.repertoire-modes button { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; min-height: 64px; padding: 8px 4px; border: 1px solid #c7d1ec; border-radius: 8px; color: #55627a; font-size: 16px; font-weight: 600; }
+.repertoire-modes button > span { font-size: 12px; font-weight: 400; }
+.repertoire-modes button[aria-pressed=true] { border-color: #254dff; color: #254dff; background: #e4eaff; }
+.repertoire-range { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 12px; }
+.repertoire-range > label { color: #55627a; font-size: 14px; }
+.repertoire-range > select { flex: 1 1 170px; min-width: 0; }
+.repertoire-chords { border-bottom: 1px solid #c7d1ec; }
+.repertoire-chords > summary, .repertoire-source > summary { min-height: 44px; padding: 10px 0; color: #254dff; font-size: 14px; line-height: 1.75; overflow-wrap: anywhere; }
+.repertoire-chords > p, .repertoire-chord > p { color: #55627a; font-size: 14px; line-height: 1.8; }
+.repertoire-chord { padding: 16px 0; border-top: 1px solid #c7d1ec88; margin-top: 12px; }
+.repertoire-chord > h3 { color: #182138; font-size: 20px; font-weight: 600; margin: 0 0 8px; }
+.repertoire-chord .chord-diagram-compact > svg { max-height: 205px; }
+.repertoire-practice-notes { display: flex; flex-direction: column; gap: 12px; }
+.repertoire-practice-notes > h2, .repertoire-prerequisites > h2 { font-size: 17px; line-height: 1.6; font-weight: 600; }
+.repertoire-focus { font-size: 15px; line-height: 1.8; color: #26334a; }
+.repertoire-practice-notes > ol { display: flex; flex-direction: column; gap: 10px; margin: 0; padding-left: 22px; list-style: decimal; }
+.repertoire-practice-notes li { color: #55627a; font-size: 15px; line-height: 1.8; padding-left: 2px; overflow-wrap: anywhere; }
+.repertoire-prerequisites { display: flex; flex-direction: column; gap: 8px; }
+.repertoire-prerequisites > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.repertoire-prerequisites button { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; max-width: 100%; border: 1px solid #c7d1ec; border-radius: 7px; padding: 8px 10px; color: #254dff; font-size: 14px; text-align: left; overflow-wrap: anywhere; }
+.repertoire-prerequisites button > svg { flex-shrink: 0; }
+.repertoire-source { border-top: 1px solid #c7d1ec; }
+.repertoire-source p, .repertoire-source li { color: #55627a; font-size: 13px; line-height: 1.8; }
+.repertoire-source ul { padding-left: 20px; list-style: disc; margin: 8px 0; }
+.repertoire-source a { color: #254dff; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+@media (max-width: 279px) { .repertoire-list button { grid-template-columns: 22px minmax(0, 1fr); gap: 8px; } .repertoire-list button > svg { display: none; } .repertoire-title { align-items: flex-start; } .repertoire-title > svg { display: none; } .repertoire-range { flex-direction: column; align-items: stretch; } .repertoire-range > select { flex: auto; } .repertoire-modes { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: no-preference) { .repertoire-modes button, .repertoire-list button { transition: background-color 160ms, border-color 160ms; } .repertoire-list button:active { transform: scale(.99); } }
+.repertoire-filters { display: flex; flex-direction: column; gap: 12px; }
+.repertoire-route-filter { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 4px; background: #e3e8f2; border-radius: 9px; }
+.repertoire-route-filter button { min-width: 0; min-height: 44px; border-radius: 6px; color: #55627a; font-size: 15px; font-weight: 600; }
+.repertoire-route-filter button[aria-pressed=true] { color: #254dff; background: #fff; box-shadow: 0 1px 3px #1821380d; }
+.repertoire-filter-note { font-size: 13px; line-height: 1.7; color: #55627a; }
+.repertoire-stage { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.repertoire-stage + .repertoire-stage { margin-top: 12px; }
+.repertoire-stage-heading { display: flex; flex-direction: column; gap: 6px; }
+.repertoire-stage-heading h2 { display: flex; align-items: baseline; gap: 10px; font-size: 19px; font-weight: 600; line-height: 1.5; }
+.repertoire-stage-heading h2 > span { color: #254dff; font: 500 15px/1.5 ui-monospace, monospace; }
+.repertoire-stage-heading > p { color: #55627a; font-size: 14px; line-height: 1.75; }
+.repertoire-technique, .repertoire-lyrics { border-bottom: 1px solid #c7d1ec; }
+.repertoire-technique > summary, .repertoire-lyrics > summary { min-height: 44px; padding: 9px 0; color: #254dff; font-size: 14px; line-height: 1.75; overflow-wrap: anywhere; }
+.repertoire-technique > ol, .repertoire-readiness > ul { display: flex; flex-direction: column; gap: 8px; padding-left: 20px; margin: 4px 0 12px; list-style: decimal; }
+.repertoire-technique li, .repertoire-technique > p, .repertoire-lyrics p, .repertoire-readiness li { color: #55627a; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.repertoire-technique > p { margin-bottom: 12px; }
+.repertoire-lyrics > div { margin: 12px 0; padding-left: 12px; border-left: 2px solid #c7d1ec; }
+.repertoire-lyrics > div > p { color: #182138; font-size: 16px; }
+.repertoire-lyrics > p:last-child { margin-bottom: 12px; }
+.repertoire-readiness { display: flex; flex-direction: column; gap: 10px; }
+.repertoire-readiness > h2 { font-size: 17px; line-height: 1.6; font-weight: 600; }
+.repertoire-readiness > ul { list-style: disc; margin: 0; }
+.repertoire-readiness > p { color: #55627a; font-size: 13px; line-height: 1.8; }
+@media (max-width: 279px) { .repertoire-route-filter { grid-template-columns: 1fr; } .repertoire-stage-heading h2 { flex-wrap: wrap; gap: 4px 8px; } }
+@media (max-height: 700px) {
+  .repertoire-screen { gap: 10px; }
+  .repertoire-filters, .repertoire-score-controls, .repertoire-stage { gap: 8px; }
+  .repertoire-stage-heading { gap: 4px; }
+  .repertoire-list button { padding: 14px 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .repertoire-route-filter button { transition: color 160ms, background-color 160ms, box-shadow 160ms; }
+  .repertoire-stage { animation: repertoire-reveal 160ms ease-out; }
+  @keyframes repertoire-reveal { from { opacity: .5; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+}

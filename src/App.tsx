@@ -1,19 +1,23 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { Activity, AudioLines, BookOpen, ClipboardCheck, Settings as SettingsIcon, ArrowLeft } from 'lucide-react'
+import { Activity, AudioLines, BookOpen, ClipboardCheck, GraduationCap, Settings as SettingsIcon, ArrowLeft } from 'lucide-react'
 import Tuner from './Tuner'
 import Metronome from './Metronome.tsx'
 import Chords from './Chords.tsx'
 import Practice from './Practice'
 import History from './History'
 import DataManager from './DataManager'
+import Learning from './Learning'
+import type { LessonTool } from './lessons'
 import { builtinChords } from './chords'
 import { PageActionContext } from './PageActions'
 import { Button } from './components/ui/button'
 import { defaultSettings, type Chord, type PracticeRecord, type Settings } from './model'
 import { loadSettings, localDataWarning, saveSettings, loadCustomChords, saveCustomChords, loadRecords, saveRecords, mergeRecordFile, recordFile, downloadJson } from './storage'
 import { isMicrophoneActive, stopMicrophone } from './audio-bus'
+import { stopReferenceAudio } from './reference-audio'
+import { stopExerciseAudio } from './exercise-audio'
 
-type Page = 'tuner' | 'metronome' | 'chords' | 'practice' | 'settings' | 'history' | 'data'
+type Page = 'learn' | 'tuner' | 'metronome' | 'chords' | 'practice' | 'settings' | 'history' | 'data'
 function initialSettings() {
   const problems: string[] = []
   const blocked: ('settings' | 'chords' | 'records')[] = []
@@ -50,9 +54,11 @@ export default function App() {
   }, [])
   const [initial] = useState(initialSettings)
   const [settings, setSettings] = useState(initial.value)
-  const [page, setPage] = useState<Page>('tuner')
-  const previousPage = useRef<Page>('tuner')
-  const settingsOrigin = useRef<Page>('tuner')
+  const [page, setPage] = useState<Page>('learn')
+  const previousPage = useRef<Page>('learn')
+  const settingsOrigin = useRef<Page>('learn')
+  const [lessonTool, setLessonTool] = useState<LessonTool | null>(null)
+  const [chordRequest, setChordRequest] = useState<{ id: string } | null>(null)
   const [error, setError] = useState(initial.error)
   const [practiceActive, setPracticeActive] = useState(false)
   const [hasUnsaved, setHasUnsaved] = useState(false)
@@ -68,10 +74,23 @@ export default function App() {
   function saveRecord(record: PracticeRecord) { changeRecords(mergeRecordFile(JSON.stringify(recordFile([record])), recordsRef.current)) }
   function changeSettings(patch: Partial<Settings>) {
     const next = { ...settings, ...patch }
-    try { if (initial.blocked.includes('settings')) throw new Error('设置存档受保护'); saveSettings(next); setSettings(next); setError('') }
-    catch { setError('设置保存失败，原有设置仍保留，请检查本地存储空间后重试。') }
+    try { if (initial.blocked.includes('settings')) throw new Error('设置存档受保护'); saveSettings(next); setSettings(next); setError(''); return true }
+    catch { setError('设置保存失败，原有设置仍保留，请检查本地存储空间后重试。'); return false }
+  }
+  function openLessonTool(tool: LessonTool) {
+    if (tool.target === 'practice' && hasUnsaved && !window.confirm('本轮结果尚未保存。确定放弃并开始课程练习？')) return
+    if (tool.bpm !== undefined && !changeSettings({ bpm: tool.bpm, beats: 4, subdivision: 1 })) return
+    const chord = builtinChords.find(item => item.name === tool.chord)
+    if (chord && tool.target === 'chords') setChordRequest({ id: chord.id })
+    if (chord && tool.target === 'practice') {
+      stopMicrophone(); setHasUnsaved(false); setTarget(chord); setPracticeRequest(value => value + 1)
+    }
+    setLessonTool(tool)
+    navigate(tool.target)
   }
   function navigate(next: Page) {
+    if (next !== 'learn') stopExerciseAudio()
+    if (next === 'learn') { setLessonTool(null); stopReferenceAudio() }
     if (next === 'settings' && !['settings', 'history', 'data'].includes(page)) settingsOrigin.current = page
     if (['history', 'data'].includes(next) && next !== page) previousPage.current = page
     if (!['settings', 'tuner', 'practice'].includes(next) || (next === 'tuner' && practiceActive) || (next === 'practice' && isMicrophoneActive() && !practiceActive)) stopMicrophone()
@@ -80,10 +99,13 @@ export default function App() {
     contentArea.current?.scrollTo(0, 0)
   }
   return <PageActionContext.Provider value={{ page, host: actionHost }}><main className={`workbench${keyboardOpen ? ' keyboard-open' : ''}`} style={viewportHeight ? { '--workbench-height': `${viewportHeight}px` } as CSSProperties : undefined}>
-    <header className="app-header" hidden={['settings', 'history', 'data'].includes(page)}><span className="eyebrow">GUITAR LEARN</span><button className="icon-button" aria-label="设置" onClick={() => navigate('settings')}><SettingsIcon size={20} /></button></header>
-    <div className="page-content" ref={contentArea}><section className="page-screen" hidden={page !== 'tuner'}><Tuner reference={settings.reference} /></section>
-    <section className="page-screen" hidden={page !== 'metronome'}><Metronome settings={settings} onChange={changeSettings} /></section>
-    <section className="page-screen" hidden={page !== 'chords'}><Chords active={page === 'chords'} settings={settings} customChords={customChords} onChange={changeChords} onPractice={chord => { if (hasUnsaved && !window.confirm('本轮结果尚未保存。请先导出或保存；确定放弃并开始新目标？')) return; stopMicrophone(); setHasUnsaved(false); setTarget(chord); setPracticeRequest(value => value + 1); navigate('practice') }} /></section>
+    <header className="app-header" hidden={['learn', 'settings', 'history', 'data'].includes(page)}><span className="eyebrow">GUITAR LEARN</span><button className="icon-button" aria-label="设置" onClick={() => navigate('settings')}><SettingsIcon size={20} /></button></header>
+    <div className={`page-content${lessonTool && ['tuner', 'metronome', 'chords', 'practice'].includes(page) ? ' lesson-tool-content' : ''}`} ref={contentArea}>
+    {lessonTool && ['tuner', 'metronome', 'chords', 'practice'].includes(page) && <button className="lesson-return" onClick={() => { setLessonTool(null); navigate('learn') }}><ArrowLeft size={16} aria-hidden="true" /><span>返回课程 · 继续刚才的一步</span></button>}
+    <section className="page-screen" hidden={page !== 'learn'}><Learning active={page === 'learn'} settings={settings} onOpenTool={openLessonTool} onSettings={() => navigate('settings')} /></section>
+    <section className="page-screen" hidden={page !== 'tuner'}><Tuner reference={settings.reference} /></section>
+    <section className="page-screen" hidden={page !== 'metronome'}><Metronome learning={page === 'learn'} settings={settings} onChange={changeSettings} /></section>
+    <section className="page-screen" hidden={page !== 'chords'}><Chords requestedChord={chordRequest} active={page === 'chords'} settings={settings} customChords={customChords} onChange={changeChords} onPractice={chord => { if (hasUnsaved && !window.confirm('本轮结果尚未保存。请先导出或保存；确定放弃并开始新目标？')) return; stopMicrophone(); setHasUnsaved(false); setTarget(chord); setPracticeRequest(value => value + 1); navigate('practice') }} /></section>
     <section className="page-screen" hidden={page !== 'practice'}><Practice key={practiceRequest} onUnsavedChange={setHasUnsaved} chords={allChords} target={effectiveTarget} onTarget={setTarget} settings={settings} onActiveChange={setPracticeActive} onSave={saveRecord} onHistory={() => navigate('history')} /></section>
     {page === 'history' && <History records={records} onChange={changeRecords} onBack={() => navigate(previousPage.current)} />}
     {page === 'data' && <DataManager chords={customChords} records={records} onChords={changeChords} onRecords={changeRecords} onBack={() => navigate(previousPage.current)} />}
@@ -102,7 +124,7 @@ export default function App() {
     {error && error !== initial.error && <p className="error-box" role="alert">{error}</p>}
     </div><div className="workbench-bottom"><div className="page-actions" role="region" aria-label="当前页面操作" ref={setActionHost} />
     <nav className="bottom-nav" aria-label="练习模块">{([
-      ['tuner', '调音', AudioLines], ['metronome', '节拍', Activity], ['chords', '和弦', BookOpen], ['practice', '检测', ClipboardCheck],
+      ['learn', '学习', GraduationCap], ['tuner', '调音', AudioLines], ['metronome', '节拍', Activity], ['chords', '和弦', BookOpen], ['practice', '检测', ClipboardCheck],
     ] as const).map(([key, label, Icon]) => <button key={key} aria-current={page === key ? 'page' : undefined} onClick={() => navigate(key)}><Icon size={20} /><span>{label}</span></button>)}</nav>
   </div></main></PageActionContext.Provider>
 }
