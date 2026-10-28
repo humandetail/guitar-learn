@@ -5,3 +5,8 @@ dist/
 playwright-report/
 test-results/
 *.local
+ios/**/xcuserdata/
+ios/DerivedData/
+ios/build/
+*.ipa
+*.xcarchive/

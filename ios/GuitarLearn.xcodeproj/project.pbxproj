@@ -1,0 +1,45 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+		343B2801D09727C7815A8699 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Audio/AppAudioModel.swift"; sourceTree = "<group>"; };
+		E205104ECA4B1427037E2B52 = { isa = PBXBuildFile; fileRef = 343B2801D09727C7815A8699; };
+		EE223538128994B167901551 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Audio/AudioMath.swift"; sourceTree = "<group>"; };
+		EB830573073A3C2B68AB4F8A = { isa = PBXBuildFile; fileRef = EE223538128994B167901551; };
+		DD6EF3C55A9718B02EC28F9E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Audio/MicrophoneCapture.swift"; sourceTree = "<group>"; };
+		BA614B362F30830CEDAFBACC = { isa = PBXBuildFile; fileRef = DD6EF3C55A9718B02EC28F9E; };
+		93CBBB3C0020B79176B04A3F = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Audio/NativeMetronome.swift"; sourceTree = "<group>"; };
+		0796891138EBB0BD431C418F = { isa = PBXBuildFile; fileRef = 93CBBB3C0020B79176B04A3F; };
+		9D6859A9260AFE3465419C84 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Audio/PitchBridge.swift"; sourceTree = "<group>"; };
+		F6EC68B98094B33A97ECE64B = { isa = PBXBuildFile; fileRef = 9D6859A9260AFE3465419C84; };
+		7395C0DF791D343C3B3D2F9C = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GuitarLearnApp.swift"; sourceTree = "<group>"; };
+		C86DABF2F27DC8E3A55410F4 = { isa = PBXBuildFile; fileRef = 7395C0DF791D343C3B3D2F9C; };
+		AA2C263208145D0776D049E6 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/ContentView.swift"; sourceTree = "<group>"; };
+		94FC738582F39828F783E9EE = { isa = PBXBuildFile; fileRef = AA2C263208145D0776D049E6; };
+		C86D989DBA75F3F5407AF35B = { isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "Resources/PitchDetector.js"; sourceTree = "<group>"; };
+		6284999F92DE425AC5D72021 = { isa = PBXBuildFile; fileRef = C86D989DBA75F3F5407AF35B; };
+		E08F5B6DCA8CCAC806A5D8C5 = { isa = PBXFileReference; lastKnownFileType = text; path = "Resources/GuitarAudioKit-LICENSE.txt"; sourceTree = "<group>"; };
+		523D8B7CBB39DBC8A67BFF47 = { isa = PBXBuildFile; fileRef = E08F5B6DCA8CCAC806A5D8C5; };
+		278AADAA5BC539AABB4EE416 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Resources/PrivacyInfo.xcprivacy"; sourceTree = "<group>"; };
+		D04AF157FB143F17000DA183 = { isa = PBXBuildFile; fileRef = 278AADAA5BC539AABB4EE416; };
+		0D0F0622355761369C7461F5 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
+		A8792157CB4F27FB949C035F = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GuitarLearn.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D6E4079E36703EBD37C0072 = { isa = PBXGroup; children = (F810A3947224DC074E90BB0D, 0A3E27B8CA818264D75C8D81); sourceTree = "<group>"; };
+		F810A3947224DC074E90BB0D = { isa = PBXGroup; children = (343B2801D09727C7815A8699, EE223538128994B167901551, DD6EF3C55A9718B02EC28F9E, 93CBBB3C0020B79176B04A3F, 9D6859A9260AFE3465419C84, 7395C0DF791D343C3B3D2F9C, AA2C263208145D0776D049E6, C86D989DBA75F3F5407AF35B, E08F5B6DCA8CCAC806A5D8C5, 278AADAA5BC539AABB4EE416, 0D0F0622355761369C7461F5); path = GuitarLearn; sourceTree = "<group>"; };
+		0A3E27B8CA818264D75C8D81 = { isa = PBXGroup; children = (A8792157CB4F27FB949C035F); name = Products; sourceTree = "<group>"; };
+		878A52FC5FF6A57D50B7B870 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (E205104ECA4B1427037E2B52, EB830573073A3C2B68AB4F8A, BA614B362F30830CEDAFBACC, 0796891138EBB0BD431C418F, F6EC68B98094B33A97ECE64B, C86DABF2F27DC8E3A55410F4, 94FC738582F39828F783E9EE); runOnlyForDeploymentPostprocessing = 0; };
+		41D311A605520FC7B8B9A980 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (6284999F92DE425AC5D72021, 523D8B7CBB39DBC8A67BFF47, D04AF157FB143F17000DA183); runOnlyForDeploymentPostprocessing = 0; };
+		E2AA269EB967A8853A258BFA = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		34A04005BCAF206EEC990BD9 = { isa = PBXNativeTarget; buildConfigurationList = 1B672BF3DA427763BF644BE3; buildPhases = (878A52FC5FF6A57D50B7B870, E2AA269EB967A8853A258BFA, 41D311A605520FC7B8B9A980); buildRules = (); dependencies = (); name = GuitarLearn; productName = GuitarLearn; productReference = A8792157CB4F27FB949C035F; productType = "com.apple.product-type.application"; };
+		73EBF6644258C120893E685D = { isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; SWIFT_STRICT_CONCURRENCY = targeted; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; DEBUG_INFORMATION_FORMAT = dwarf; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; }; name = Debug; };
+		0B0C687DF8B6B8DC790B519C = { isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; SWIFT_STRICT_CONCURRENCY = targeted; SWIFT_OPTIMIZATION_LEVEL = "-O"; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; }; name = Release; };
+		76F8DEC3DFE0BDB465198890 = { isa = XCConfigurationList; buildConfigurations = (73EBF6644258C120893E685D, 0B0C687DF8B6B8DC790B519C); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		6C7EFF6369083C8E1F2B1994 = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = GuitarLearn/Info.plist; MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = org.guitarlearn.personal; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; TARGETED_DEVICE_FAMILY = 1; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; ENABLE_PREVIEWS = YES; }; name = Debug; };
+		DD75E2CB1C510A828AC72D96 = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = GuitarLearn/Info.plist; MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = org.guitarlearn.personal; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; TARGETED_DEVICE_FAMILY = 1; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; ENABLE_PREVIEWS = YES; }; name = Release; };
+		1B672BF3DA427763BF644BE3 = { isa = XCConfigurationList; buildConfigurations = (6C7EFF6369083C8E1F2B1994, DD75E2CB1C510A828AC72D96); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		244210E48437B6556980A702 = { isa = PBXProject; attributes = { BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 1600; TargetAttributes = { 34A04005BCAF206EEC990BD9 = { CreatedOnToolsVersion = 16.0; }; }; }; buildConfigurationList = 76F8DEC3DFE0BDB465198890; compatibilityVersion = "Xcode 14.0"; developmentRegion = "zh-Hans"; hasScannedForEncodings = 0; knownRegions = ("zh-Hans", en, Base); mainGroup = 0D6E4079E36703EBD37C0072; productRefGroup = 0A3E27B8CA818264D75C8D81; projectDirPath = ""; projectRoot = ""; targets = (34A04005BCAF206EEC990BD9); };
+	};
+	rootObject = 244210E48437B6556980A702;
+}

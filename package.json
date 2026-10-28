@@ -9,6 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "test:audio": "node --experimental-strip-types scripts/check-audio.ts",
+    "ios:bundle": "node scripts/build-ios-detector.mjs",
+    "ios:check": "node scripts/build-ios-detector.mjs --check && node --test ios/Tests/detector.test.mjs && bash ios/check-native.sh",
     "lint": "oxlint src tests scripts vite.config.ts playwright.config.ts"
   },
   "dependencies": {
