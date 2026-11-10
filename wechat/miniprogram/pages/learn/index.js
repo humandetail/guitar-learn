@@ -13,6 +13,7 @@ Page({
     })
     this.setData({ ...snapshot, groups, current: lessons.find(item => item.id === progress.lessonId), count: progress.completed.length })
   },
+  theory() { wx.navigateTo({ url: '/pages/theory/index' }) },
   open(event) { wx.navigateTo({ url: '/pages/lesson/index?id=' + encodeURIComponent(event.currentTarget.dataset.id) }) },
   resume() { wx.navigateTo({ url: '/pages/lesson/index?id=' + encodeURIComponent(this.data.current.id) }) },
   retry() { store().retry(); this.refresh() },

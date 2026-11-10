@@ -1,0 +1,23 @@
+.theory-screen { padding-bottom: 36px; }
+.theory-screen h2 { margin: 24px 0 12px; font-size: 19px; }
+.theory-screen button { cursor: pointer; }
+.theory-topic { display: block; width: 100%; text-align: left; margin: 10px 0; padding: 17px; background: white; border: 1px solid #d8deea; border-radius: 12px; line-height: 1.6; color: #24334e; }
+.theory-task, .theory-self { margin-top: 24px; padding: 16px; border: 1px solid #d8deea; border-radius: 16px; background: white; }
+.theory-task h2, .theory-self h2 { margin-top: 0; }
+.theory-options { display: grid; gap: 10px; margin: 16px 0; }
+.theory-options button, .theory-controls button { min-height: 44px; padding: 10px; border: 1px solid #aebbd3; border-radius: 8px; background: #f4f6fb; color: #24334e; text-align: left; }
+.theory-controls { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.theory-screen button:disabled { opacity: .45; cursor: default; }
+.theory-screen button:focus-visible { outline: 3px solid #254dff; outline-offset: 3px; }
+.theory-task [role=status] { line-height: 1.7; color: #24467a; }
+.theory-self label { display: flex; gap: 10px; align-items: start; line-height: 1.7; }
+.theory-self input { width: 20px; height: 20px; flex-shrink: 0; }
+.theory-staff { display: block; width: 100%; max-width: 420px; }
+.theory-staff g[role=button] { cursor: pointer; }
+.theory-staff g:focus-visible { outline: 3px solid #254dff; }
+.theory-board { display: grid; margin: 18px 0; gap: 0; align-items: stretch; }
+.theory-board-head { align-self: center; text-align: center; font-size: 12px; }
+.theory-board-cell { border-right: 2px solid #a5b2c7; background: linear-gradient(transparent calc(50% - 1px), #a5b2c7 calc(50% - 1px), #a5b2c7 calc(50% + 1px), transparent calc(50% + 1px)), #f7f2e9; min-height: 44px; text-align: center; display: grid; place-items: center; }
+.theory-board-cell button { border: 0; border-radius: 6px; background: #e9efff; color: #254dff; min-height: 44px; width: 100%; padding: 2px; }
+.theory-board-cell small { display: block; font-size: 11px; }
+.theory-board-caption { grid-column: 1 / -1; margin-top: 10px; }

@@ -3,6 +3,7 @@
   <block wx:if="{{lesson}}">
     <view class="eyebrow">{{lesson.section}}</view><view class="title">{{lesson.title}}</view><view class="subtitle">{{lesson.goal}}</view>
     <view class="row spread gap"><text class="badge">{{step < lesson.steps.length ? '第 ' + (step + 1) + ' / ' + lesson.steps.length + ' 步' : '练习后自查'}}</text><button class="plain" bindtap="home">学习目录</button></view>
+    <button wx:for="{{theoryTopics}}" wx:key="id" class="secondary wide gap" bindtap="theory" data-id="{{item.id}}">乐理 · {{item.title}}</button>
     <block wx:if="{{current}}">
       <view class="h2">{{current.title}}</view>
       <text wx:for="{{current.body}}" wx:key="*this" class="paragraph">{{item}}</text>

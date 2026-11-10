@@ -1,5 +1,5 @@
 {
-  "pages": ["pages/learn/index", "pages/library/index", "pages/tools/index", "pages/lesson/index", "pages/score/index"],
+  "pages": ["pages/learn/index", "pages/library/index", "pages/tools/index", "pages/lesson/index", "pages/score/index", "pages/theory/index"],
   "window": { "navigationBarTitleText": "六弦", "navigationBarBackgroundColor": "#f4f6fb", "navigationBarTextStyle": "black", "backgroundColor": "#f4f6fb" },
   "tabBar": { "color": "#59677e", "selectedColor": "#254dff", "backgroundColor": "#ffffff", "list": [
     { "pagePath": "pages/learn/index", "text": "学吉他" },

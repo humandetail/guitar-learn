@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="row spread"><button class="plain" bindtap="back">{{from ? '返回原课程' : '返回课程目录'}}</button><button wx:if="{{topic}}" class="plain" bindtap="directory">乐理目录</button></view>
+  <view wx:if="{{error}}" class="error">{{error}}<button class="plain" bindtap="retry">重试{{blocked ? '读取' : '保存'}}乐理进度</button></view>
+  <block wx:if="{{!topic}}">
+    <view class="title">乐理学习与复习</view><view class="subtitle">边弹边理解，随时复习。不影响弹奏课的继续学习。</view>
+    <view wx:for="{{groups}}" wx:key="title" wx:for-item="group"><view class="h2">阶段 {{group.number}} · {{group.title}}</view><button wx:for="{{group.topics}}" wx:key="id" class="list-item" bindtap="open" data-id="{{item.id}}">{{item.title}} · {{item.status}}</button></view>
+    <view class="muted gap">进度保存在当前微信，不与 Web 同步。</view>
+  </block>
+  <block wx:else>
+    <view class="eyebrow">阶段 {{topic.stage}}</view><view class="title">{{topic.title}}</view><view class="badge">状态：{{status}}{{error ? '（本次操作尚未保存）' : ''}}</view>
+    <text wx:for="{{topic.paragraphs}}" wx:key="*this" class="paragraph">{{item}}</text><button class="secondary wide" bindtap="read">标记已阅读</button>
+    <view wx:if="{{task}}" class="panel gap"><view class="h2">小任务 {{question + 1}} / {{topic.tasks.length}}</view><view class="paragraph">{{task.prompt}}</view>
+      <button wx:if="{{task.events}}" class="secondary wide" bindtap="play">{{playing ? '停止示范' : '播放合成示范'}}</button><view wx:if="{{task.events}}" class="muted small">合成示范 · 60 BPM · 可重复听</view><view wx:if="{{audioError}}" class="error">{{audioError}}</view>
+      <canvas wx:if="{{task.kind === 'staff'}}" id="theoryStaff" canvas-id="theoryStaff" bindtouchend="staffTap" class="staff" aria-label="点选五线谱候选音 A、B、C，也可用下方按钮选择" />
+      <view wx:if="{{task.kind === 'fretboard'}}" class="board">
+        <view class="board-row"><text class="board-label">弦</text><text wx:for="{{boardFrets}}" wx:key="*this" class="board-cell">{{item === 0 ? '空弦' : item + ' 品'}}</text></view>
+        <view wx:for="{{boardRows}}" wx:key="string" wx:for-item="row" class="board-row"><text class="board-label">{{row.string}}</text><view wx:for="{{row.cells}}" wx:key="fret" class="board-cell"><button wx:if="{{item.option}}" class="board-note" aria-label="{{item.option.label}}" bindtap="answer" data-id="{{item.option.id}}">{{item.fret === 0 ? '○' : '●'}}<view class="small">{{item.option.label}}</view></button><text wx:else aria-hidden="true">—</text></view></view>
+        <view class="muted small">上方为 1 弦，下方为 6 弦；0 为空弦。点选候选位置。</view>
+      </view>
+      <view wx:else><button wx:for="{{task.options}}" wx:key="id" class="secondary wide gap" bindtap="answer" data-id="{{item.id}}">{{item.label}}</button></view>
+      <view class="feedback gap" aria-role="status" aria-live="polite">{{feedback}}</view>
+      <view class="actions"><button bindtap="retryAnswer">重新作答</button><button bindtap="skip">跳过本题</button></view><view class="actions"><button bindtap="previous" disabled="{{question === 0}}">上一题</button><button bindtap="next" disabled="{{question === topic.tasks.length - 1}}">下一题</button></view>
+    </view>
+    <view wx:if="{{examples.length}}" class="panel gap"><view class="h2">听一听，再照着弹</view><view class="muted">每个位置一拍，同一位置的音同时拨。合成示范 · 60 BPM。</view>
+      <view wx:for="{{examples}}" wx:key="id" wx:for-item="example"><view class="h3 gap">{{example.title}}</view><button class="secondary wide" bindtap="playExample" data-id="{{example.id}}" disabled="{{playing}}">播放{{example.title}}</button><view wx:for="{{example.steps}}" wx:key="index" class="paragraph">{{item.text}}</view></view>
+      <button wx:if="{{playing}}" class="secondary wide" bindtap="stopAudio">停止案例示范</button><view wx:if="{{audioError}}" class="error">{{audioError}}</view>
+    </view>
+    <view class="panel gap"><view class="h2">拿琴试一试</view><text class="paragraph">{{topic.selfCheck}}</text><checkbox-group bindchange="selfCheck"><label class="check"><checkbox value="checked" checked="{{selfChecked}}" /><text>我已自行检查（不代表系统验证演奏能力）</text></label></checkbox-group></view>
+  </block>
+</view>

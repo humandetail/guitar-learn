@@ -9,6 +9,7 @@
     <view class="h2">{{current.title}}</view><view class="muted">{{current.goal}}</view>
     <button class="primary wide gap" bindtap="resume" disabled="{{blocked}}">{{count || progress.step ? '继续学习' : '开始第一课'}}</button>
   </view>
+  <button class="secondary wide gap" bindtap="theory">乐理学习与复习</button>
   <view wx:for="{{groups}}" wx:key="title" wx:for-item="group">
     <view class="h2">{{group.title}}</view>
     <button wx:for="{{group.lessons}}" wx:key="id" class="list-item" bindtap="open" data-id="{{item.id}}" disabled="{{blocked}}">

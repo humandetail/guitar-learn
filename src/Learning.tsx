@@ -11,6 +11,8 @@ import BeginnerDiagrams from './BeginnerDiagrams'
 import TabExercise from './TabExercise'
 import { exercises } from './exercises'
 import Repertoire from './Repertoire.tsx'
+import Theory, { type TheorySession } from './TheoryLearning'
+import { theoryTopics } from './theory'
 import './learning.css'
 
 function initialProgress() {
@@ -60,6 +62,8 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
   const [error, setError] = useState(initial.error)
   const [blocked, setBlocked] = useState(initial.blocked)
   const [repertoireOpen, setRepertoireOpen] = useState(false)
+  const theorySession = useRef<TheorySession | null>(null)
+  const [theoryOpen, setTheoryOpen] = useState<{ topicId: string | null } | null>(null)
   const pending = useRef<LearningProgress | null>(null)
   const screen = useRef<HTMLElement>(null)
   const lesson = lessons.find(item => item.id === progress.lessonId)!
@@ -116,11 +120,13 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
   const repertoireEntry = <button type="button" className="learning-repertoire-entry" onClick={() => setRepertoireOpen(true)}><Music2 size={24} aria-hidden="true" /><span><strong>分级曲库</strong><small>从第一首旋律，练到弹唱与指弹</small></span><ChevronRight size={18} aria-hidden="true" /></button>
 
   if (repertoireOpen) return <Repertoire settings={settings} active={active} onBack={() => setRepertoireOpen(false)} onOpenLesson={id => openLesson(id)} />
+  if (theoryOpen) return <Theory session={theorySession} topicId={theoryOpen.topicId} active={active} settings={settings} onBack={() => setTheoryOpen(null)} />
 
   if (progress.view === 'overview') return <section className="learning-screen learning-overview" ref={screen} aria-label="入门课程">
     <div className="title-row"><h1>从零开始学</h1>{settingsButton}</div>
     <p className="learning-intro">先认琴、读谱、练基本功，再一步步走向弹唱与独奏。</p>
     {repertoireEntry}
+    <button className="learning-repertoire-entry" onClick={() => setTheoryOpen({ topicId: null })}>乐理学习与复习</button>
     <div className="learning-course-progress"><span>{allComplete ? '入门课程已完成' : `已完成 ${progress.completed.length} / ${lessons.length} 节`}</span></div>
     <div className="learning-progress-track" role="progressbar" aria-label="入门课程进度" aria-valuemin={0} aria-valuemax={lessons.length} aria-valuenow={progress.completed.length}><span style={{ width: `${progress.completed.length / lessons.length * 100}%` }} /></div>
     {errorNotice}
@@ -150,6 +156,7 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
     <div className="title-row"><button className="learning-back" onClick={() => write({ ...progress, view: 'overview' })}><ArrowLeft size={18} aria-hidden="true" />课程目录</button>{settingsButton}</div>
     <div className="learning-lesson-meta"><span>第 {lessonIndex + 1} 课 / {lessons.length}</span><span><Clock3 size={14} aria-hidden="true" />{lesson.duration}</span></div>
     <h1>{lesson.title}</h1>
+    {theoryTopics.filter(topic => topic.lessons.includes(lesson.id)).map(topic => <button className="learning-tool-button" key={topic.id} onClick={() => setTheoryOpen({ topicId: topic.id })}>乐理 · {topic.title}</button>)}
     {progress.step === 0 && <p className="learning-goal">这一课：{lesson.goal}</p>}
     <div className="learning-step-meta"><span>{checking ? '动手后，自查一下' : `步骤 ${progress.step + 1} / ${lesson.steps.length}`}</span><span>{checking ? '按自己的实际情况勾选' : '看懂 → 动手 → 练习'}</span></div>
     <div className="learning-progress-track" role="progressbar" aria-label="本课进度" aria-valuemin={0} aria-valuemax={lesson.steps.length + 1} aria-valuenow={progress.step + 1}><span style={{ width: `${(progress.step + 1) / (lesson.steps.length + 1) * 100}%` }} /></div>

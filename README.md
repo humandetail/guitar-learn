@@ -1,5 +1,7 @@
 # Guitar Learn
 
+新增乐理学习：Web 与微信小程序提供三阶段 12 个知识点、27 个小任务，从音名与指板走向五线谱、移调、和声与编配。可从相关弹奏课进入，也可在“乐理学习与复习”集中复习；包含指板／谱面点选、合成示范听辨及两种编配案例。已阅读、练习通过与演奏自查分别记录，不阻断弹奏课。进度仅保存在当前浏览器或微信，不互相同步。[乐理范围与验收](docs/verification/music-theory.md)。
+
 新增 [微信小程序版](wechat/README.md)：14 课、9 练习、五级曲库、内置和弦与节拍器。用微信开发者工具导入 `wechat`；配置自己的 AppID 后可进入扫码预览流程，不需要 Xcode。当前已做逻辑与模板语法检查，微信运行及 iPhone 真机验收待完成。[微信待验收 Tickets](docs/verification/wechat-app.md)。
 
 新增 [iOS 原生音频验证版](ios/README.md)：第 6 弦 E2 调音与基础 4/4 节拍器，工程位于 `ios/GuitarLearn.xcodeproj`。当前 Mac 缺少完整 Xcode / iOS SDK，尚未完成 iPhone 编译安装和真机验收；课程、曲库仍在下述 Web 版，待音频验证后迁入。[iOS 待验收 Tickets](docs/verification/ios-app.md)。

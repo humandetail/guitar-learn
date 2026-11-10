@@ -1,4 +1,4 @@
-const { lessons, exercises } = require('../../data/content')
+const { lessons, exercises, theoryTopics } = require('../../data/content')
 const { store } = require('../../lib/progress')
 const audio = require('../../lib/audio')
 Page({
@@ -7,6 +7,7 @@ Page({
     const lesson = lessons.find(item => item.id === options.id)
     if (!lesson) { this.setData({ error: '没有找到这节课，请返回学习目录。' }); return }
     const { progress } = store().load()
+    this.setData({ theoryTopics: theoryTopics.filter(topic => topic.lessons.includes(lesson.id)) })
     this.lesson = lesson
     const step = progress.lessonId === lesson.id ? progress.step : 0
     this.setStep(step)
@@ -41,6 +42,7 @@ Page({
   nextLesson() { wx.redirectTo({ url: '/pages/lesson/index?id=' + encodeURIComponent(this.data.next.id) }) },
   retry() { store().retry(); this.refresh() },
   home() { wx.switchTab({ url: '/pages/learn/index' }) },
+  theory(event) { audio.stop(); wx.navigateTo({ url: '/pages/theory/index?id=' + encodeURIComponent(event.currentTarget.dataset.id) + '&from=' + this.lesson.id }) },
   tool() {
     const tool = this.data.current.tool
     audio.stop()
