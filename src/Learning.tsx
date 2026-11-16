@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronRight, Clock3, Music2, Settings as SettingsIcon } from 'lucide-react'
 import { Button } from './components/ui/button'
 import { PageActions } from './PageActions'
@@ -8,6 +8,7 @@ import type { Settings } from './model'
 import { lessons, type LessonStep, type LessonTool } from './lessons'
 import { freshLearningProgress, loadLearningProgress, saveLearningProgress, type LearningProgress } from './learning-storage'
 import BeginnerDiagrams from './BeginnerDiagrams'
+import GuitarExperience, { type ExperienceEntry } from './GuitarExperience'
 import TabExercise from './TabExercise'
 import { exercises } from './exercises'
 import Repertoire from './Repertoire.tsx'
@@ -62,6 +63,9 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
   const [error, setError] = useState(initial.error)
   const [blocked, setBlocked] = useState(initial.blocked)
   const [repertoireOpen, setRepertoireOpen] = useState(false)
+  const [experienceOpen, setExperienceOpen] = useState<ExperienceEntry | null>(null)
+  const [experienceLesson, setExperienceLesson] = useState(false)
+  const experienceOrigin = useRef<Pick<LearningProgress, 'view' | 'lessonId' | 'step'> | null>(null)
   const theorySession = useRef<TheorySession | null>(null)
   const [theoryOpen, setTheoryOpen] = useState<{ topicId: string | null } | null>(null)
   const pending = useRef<LearningProgress | null>(null)
@@ -82,7 +86,7 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
 
   useEffect(() => {
     if (active) screen.current?.closest('.page-content')?.scrollTo(0, 0)
-  }, [active, progress.view, progress.lessonId, progress.step, repertoireOpen])
+  }, [active, progress.view, progress.lessonId, progress.step, repertoireOpen, experienceOpen, experienceLesson])
 
   function write(next: LearningProgress, requireSave = false) {
     pending.current = next
@@ -107,6 +111,19 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
     setRepertoireOpen(false)
     write({ ...progress, view: 'lesson', lessonId: id, step: resume && id === progress.lessonId ? progress.step : 0 })
   }
+  function openExperience(entry: ExperienceEntry) {
+    if (!experienceOpen) experienceOrigin.current = { view: progress.view, lessonId: progress.lessonId, step: progress.step }
+    setExperienceLesson(false)
+    setExperienceOpen(entry)
+  }
+  function closeExperience() {
+    const origin = experienceOrigin.current
+    experienceOrigin.current = null
+    setExperienceOpen(null)
+    if (origin && (progress.view !== origin.view || progress.lessonId !== origin.lessonId || progress.step !== origin.step)) {
+      write({ ...progress, ...origin })
+    }
+  }
   function toggleCheck(index: number) {
     const next = checked.includes(index) ? checked.filter(value => value !== index) : [...checked, index]
     write({ ...progress, checks: { ...progress.checks, [lesson.id]: next } })
@@ -119,12 +136,26 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
   const errorNotice = error && <div className="learning-save-error" role="alert"><p>{error}</p><button type="button" onClick={retry}>{blocked ? '重新读取进度' : '重试保存'}</button></div>
   const repertoireEntry = <button type="button" className="learning-repertoire-entry" onClick={() => setRepertoireOpen(true)}><Music2 size={24} aria-hidden="true" /><span><strong>分级曲库</strong><small>从第一首旋律，练到弹唱与指弹</small></span><ChevronRight size={18} aria-hidden="true" /></button>
 
-  if (repertoireOpen) return <Repertoire settings={settings} active={active} onBack={() => setRepertoireOpen(false)} onOpenLesson={id => openLesson(id)} />
-  if (theoryOpen) return <Theory session={theorySession} topicId={theoryOpen.topicId} active={active} settings={settings} onBack={() => setTheoryOpen(null)} />
+  const experienceVisible = Boolean(experienceOpen && !experienceLesson && !repertoireOpen)
+  function withExperience(content?: ReactNode) {
+    return <>
+      {experienceOpen && <div hidden={!experienceVisible}>
+        <GuitarExperience key={experienceOpen} entry={experienceOpen} settings={settings} active={active && experienceVisible} onBack={closeExperience} onOpenTool={onOpenTool}
+          onOpenRepertoire={() => setRepertoireOpen(true)} onOpenLesson={id => { setExperienceLesson(true); openLesson(id) }} />
+      </div>}
+      {content}
+    </>
+  }
+  const returnToExperience = experienceLesson && <button className="learning-back" type="button" onClick={() => setExperienceLesson(false)}><ArrowLeft size={16} aria-hidden="true" />返回吉他体验馆</button>
+  if (experienceVisible) return withExperience()
+  if (repertoireOpen) return withExperience(<Repertoire settings={settings} active={active} onBack={() => setRepertoireOpen(false)} onOpenLesson={id => { if (experienceOpen) setExperienceLesson(true); openLesson(id) }} />)
+  if (theoryOpen) return withExperience(<Theory session={theorySession} topicId={theoryOpen.topicId} active={active} settings={settings} onBack={() => setTheoryOpen(null)} />)
 
-  if (progress.view === 'overview') return <section className="learning-screen learning-overview" ref={screen} aria-label="入门课程">
+  if (progress.view === 'overview') return withExperience(<section className="learning-screen learning-overview" ref={screen} aria-label="入门课程">
+    {returnToExperience}
     <div className="title-row"><h1>从零开始学</h1>{settingsButton}</div>
     <p className="learning-intro">先认琴、读谱、练基本功，再一步步走向弹唱与独奏。</p>
+    <button type="button" className="learning-repertoire-entry" onClick={() => openExperience('home')}>吉他体验馆</button>
     {repertoireEntry}
     <button className="learning-repertoire-entry" onClick={() => setTheoryOpen({ topicId: null })}>乐理学习与复习</button>
     <div className="learning-course-progress"><span>{allComplete ? '入门课程已完成' : `已完成 ${progress.completed.length} / ${lessons.length} 节`}</span></div>
@@ -140,9 +171,10 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
     })}</ol></section>)}
     <p className="learning-local-note">学习进度保存在这个浏览器中，随时可以回来继续。</p>
     <PageActions page="learn"><Button className="learning-action primary-action" onClick={() => openLesson(resumeLesson.id, !allComplete && resumeLesson.id === progress.lessonId)}>{allComplete ? '从第一课复习' : hasStarted ? '继续学习' : '开始第一课'}<ArrowRight size={18} aria-hidden="true" /></Button></PageActions>
-  </section>
+  </section>)
 
-  if (progress.view === 'complete') return <section className="learning-screen learning-complete" ref={screen} aria-label="本课完成">
+  if (progress.view === 'complete') return withExperience(<section className="learning-screen learning-complete" ref={screen} aria-label="本课完成">
+    {returnToExperience}
     <div className="title-row"><button className="learning-back" onClick={() => write({ ...progress, view: 'overview' })}><ArrowLeft size={18} aria-hidden="true" />课程目录</button>{settingsButton}</div>
     <div className="learning-complete-hero"><CheckCircle2 size={48} aria-hidden="true" /><h1>{allComplete ? '完成你的第一段学习' : '这一课，练过了'}</h1><p>{lesson.title}</p></div>
     <div className="learning-complete-summary"><h2>你已经亲自检查</h2><ul>{lesson.checks.map(check => <li key={check}><Check size={18} aria-hidden="true" /><span>{check}</span></li>)}</ul></div>
@@ -150,14 +182,16 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
     {repertoireEntry}
     {errorNotice}
     <PageActions page="learn"><Button className="learning-action" variant="outline" onClick={() => openLesson(lesson.id)}>再练一次</Button><Button className="learning-action primary-action learning-next-lesson" aria-label={allComplete || !nextLesson ? '返回课程' : '开始下一课'} onClick={() => allComplete || !nextLesson ? write({ ...progress, view: 'overview' }) : openLesson(nextLesson.id)}><span>{allComplete || !nextLesson ? '返回课程' : '开始下一课'}{!allComplete && nextLesson && <small>{nextLesson.title}</small>}</span><ArrowRight size={18} aria-hidden="true" /></Button></PageActions>
-  </section>
+  </section>)
 
-  return <section className="learning-screen learning-detail" ref={screen} aria-label={lesson.title}>
+  return withExperience(<section className="learning-screen learning-detail" ref={screen} aria-label={lesson.title}>
+    {returnToExperience}
     <div className="title-row"><button className="learning-back" onClick={() => write({ ...progress, view: 'overview' })}><ArrowLeft size={18} aria-hidden="true" />课程目录</button>{settingsButton}</div>
     <div className="learning-lesson-meta"><span>第 {lessonIndex + 1} 课 / {lessons.length}</span><span><Clock3 size={14} aria-hidden="true" />{lesson.duration}</span></div>
     <h1>{lesson.title}</h1>
     {theoryTopics.filter(topic => topic.lessons.includes(lesson.id)).map(topic => <button className="learning-tool-button" key={topic.id} onClick={() => setTheoryOpen({ topicId: topic.id })}>乐理 · {topic.title}</button>)}
     {progress.step === 0 && <p className="learning-goal">这一课：{lesson.goal}</p>}
+    {lesson.id === 'guitar-basics' && (step?.diagram === 'strings' || step?.diagram === 'frets') && <button className="learning-tool-button" type="button" onClick={() => openExperience(step.diagram === 'strings' ? 'open' : 'frets')}>{step.diagram === 'strings' ? '试着拨空弦' : '试着按品位'}</button>}
     <div className="learning-step-meta"><span>{checking ? '动手后，自查一下' : `步骤 ${progress.step + 1} / ${lesson.steps.length}`}</span><span>{checking ? '按自己的实际情况勾选' : '看懂 → 动手 → 练习'}</span></div>
     <div className="learning-progress-track" role="progressbar" aria-label="本课进度" aria-valuemin={0} aria-valuemax={lesson.steps.length + 1} aria-valuenow={progress.step + 1}><span style={{ width: `${(progress.step + 1) / (lesson.steps.length + 1) * 100}%` }} /></div>
     <div className="learning-step" key={`${lesson.id}-${progress.step}`}>
@@ -172,5 +206,5 @@ export default function Learning({ onOpenTool, onSettings, settings, active }: {
       <Button className="learning-action" variant="outline" onClick={() => progress.step === 0 ? write({ ...progress, view: 'overview' }) : write({ ...progress, step: progress.step - 1 })}>{progress.step === 0 ? '返回课程' : '上一步'}</Button>
       <Button className="learning-action primary-action" disabled={checking && (!allChecked || blocked)} onClick={() => checking ? completeLesson() : write({ ...progress, step: progress.step + 1 })}>{checking ? '完成本课' : progress.step === lesson.steps.length - 1 ? '开始自查' : '下一步'}{!checking && <ArrowRight size={18} aria-hidden="true" />}</Button>
     </>}</PageActions>
-  </section>
+  </section>)
 }

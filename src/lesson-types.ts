@@ -3,6 +3,7 @@ export type LessonTool = {
   target: 'tuner' | 'chords' | 'practice' | 'metronome'
   chord?: 'Em' | 'Am'
   bpm?: number
+  returnLabel?: string
 }
 
 export type LessonStep = {

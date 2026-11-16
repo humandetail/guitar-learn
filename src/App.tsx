@@ -101,7 +101,7 @@ export default function App() {
   return <PageActionContext.Provider value={{ page, host: actionHost }}><main className={`workbench${keyboardOpen ? ' keyboard-open' : ''}`} style={viewportHeight ? { '--workbench-height': `${viewportHeight}px` } as CSSProperties : undefined}>
     <header className="app-header" hidden={['learn', 'settings', 'history', 'data'].includes(page)}><span className="eyebrow">GUITAR LEARN</span><button className="icon-button" aria-label="设置" onClick={() => navigate('settings')}><SettingsIcon size={20} /></button></header>
     <div className={`page-content${lessonTool && ['tuner', 'metronome', 'chords', 'practice'].includes(page) ? ' lesson-tool-content' : ''}`} ref={contentArea}>
-    {lessonTool && ['tuner', 'metronome', 'chords', 'practice'].includes(page) && <button className="lesson-return" onClick={() => { setLessonTool(null); navigate('learn') }}><ArrowLeft size={16} aria-hidden="true" /><span>返回课程 · 继续刚才的一步</span></button>}
+    {lessonTool && ['tuner', 'metronome', 'chords', 'practice'].includes(page) && <button className="lesson-return" onClick={() => { setLessonTool(null); navigate('learn') }}><ArrowLeft size={16} aria-hidden="true" /><span>{lessonTool.returnLabel ?? '返回课程 · 继续刚才的一步'}</span></button>}
     <section className="page-screen" hidden={page !== 'learn'}><Learning active={page === 'learn'} settings={settings} onOpenTool={openLessonTool} onSettings={() => navigate('settings')} /></section>
     <section className="page-screen" hidden={page !== 'tuner'}><Tuner reference={settings.reference} /></section>
     <section className="page-screen" hidden={page !== 'metronome'}><Metronome learning={page === 'learn'} settings={settings} onChange={changeSettings} /></section>

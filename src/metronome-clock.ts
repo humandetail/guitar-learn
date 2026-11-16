@@ -16,10 +16,11 @@ export class MetronomeClock {
   private rhythm: Rhythm
   private wanted: Rhythm
   private audible = true
-  constructor(rhythm: Rhythm, private pulse: (step: number, rhythm: Rhythm) => void, private interrupted: () => void) {
+  constructor(rhythm: Rhythm, private pulse: (step: number, rhythm: Rhythm, time: number) => void, private interrupted: () => void) {
     this.rhythm = rhythm
     this.wanted = rhythm
   }
+  get currentTime() { return this.context?.currentTime ?? null }
   async start() {
     const context = new AudioContext()
     this.context = context
@@ -61,7 +62,7 @@ export class MetronomeClock {
   private flush(now: number) {
     while (this.queue.length && this.queue[0].time <= now) {
       const event = this.queue.shift()!
-      this.pulse(event.step, event.rhythm)
+      this.pulse(event.step, event.rhythm, event.time)
     }
   }
   private paint = () => {

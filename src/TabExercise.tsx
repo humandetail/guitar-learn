@@ -45,10 +45,10 @@ function splitBars(exercise: TabExerciseData, maxColumns: number) {
   return bars
 }
 
-type Props = { exercise: TabExerciseData; reference: number; active: boolean; onBpmChange?: (bpm: number) => void; collapsibleHelp?: boolean }
+type Props = { exercise: TabExerciseData; reference: number; active: boolean; onBpmChange?: (bpm: number) => void; collapsibleHelp?: boolean; interactivePractice?: { position: number; onDemoStart: () => void } }
 
-function ExercisePanel({ exercise, reference, active, onBpmChange, collapsibleHelp }: Props) {
-  const [selected, setSelected] = useState(0)
+function ExercisePanel({ exercise, reference, active, onBpmChange, collapsibleHelp, interactivePractice }: Props) {
+  const [previewPosition, setSelected] = useState(0)
   const [bpm, setBpm] = useState(exercise.bpm)
   const [playback, setPlayback] = useState<'idle' | 'starting' | 'playing'>('idle')
   const [error, setError] = useState('')
@@ -60,6 +60,7 @@ function ExercisePanel({ exercise, reference, active, onBpmChange, collapsibleHe
   const generation = useRef(0)
   const speedId = useId()
   const titleId = useId()
+  const selected = interactivePractice && playback === 'idle' ? interactivePractice.position : previewPosition
 
   function cancelAudio() {
     generation.current++
@@ -89,6 +90,7 @@ function ExercisePanel({ exercise, reference, active, onBpmChange, collapsibleHe
 
   async function play() {
     if (!active || audioOwned.current) return
+    interactivePractice?.onDemoStart()
     const token = ++generation.current
     audioOwned.current = true
     playbackControls.current?.scrollIntoView({ block: 'start' })
@@ -126,7 +128,7 @@ function ExercisePanel({ exercise, reference, active, onBpmChange, collapsibleHe
     count += event.beats
     return position % 1 ? `${Math.floor(position) + 1} 后半拍` : `第 ${position + 1} 拍`
   })
-  const readingHint = <p className="tab-reading-hint">上 1 弦、下 6 弦；数字是品位，0 是空弦。从左往右弹，点一列看动作。</p>
+  const readingHint = <p className="tab-reading-hint">上 1 弦、下 6 弦；数字是品位，0 是空弦。{interactivePractice ? '按高亮位置在琴面上弹。' : '从左往右弹，点一列看动作。'}</p>
   const speeds = [...new Set([40, 50, 60, 80, exercise.bpm])].sort((a, b) => a - b)
   return <section className={`tab-exercise${collapsibleHelp ? ' tab-exercise-compact-help' : ''}`} aria-labelledby={titleId}>
     <div className="tab-exercise-heading"><h3 id={titleId}>{exercise.title}</h3><span>4/4 拍</span></div>
@@ -140,7 +142,7 @@ function ExercisePanel({ exercise, reference, active, onBpmChange, collapsibleHe
           <div className="tab-string-labels" aria-hidden="true">{stringNumbers.map(string => <span key={string}>{string} 弦</span>)}</div>
           {row.indices.map(index => {
             const noteEvent = exercise.events[index]
-            return <button key={index} type="button" className={`tab-event${index === selected ? ' selected' : ''}`} aria-label={`第 ${index + 1} 个位置：${describeEvent(noteEvent)}`} aria-pressed={index === selected} onClick={() => choose(index)}>
+            return <button key={index} type="button" className={`tab-event${index === selected ? ' selected' : ''}`} aria-label={`第 ${index + 1} 个位置：${describeEvent(noteEvent)}`} aria-pressed={index === selected} disabled={Boolean(interactivePractice)} onClick={() => choose(index)}>
               <span className="tab-event-lines" aria-hidden="true">{stringNumbers.map(string => {
                 const note = noteEvent.notes.find(note => note.string === string)
                 return <span className="tab-event-string" key={string}><i />{note && <strong data-role={note.role} title={note.role ? roles[note.role] : undefined}>{note.fret}</strong>}</span>
@@ -159,12 +161,12 @@ function ExercisePanel({ exercise, reference, active, onBpmChange, collapsibleHe
             <p>{describeEvent(event)}</p>
             {event.lyric && <p className="tab-current-lyric">这一音唱「{event.lyric}」</p>}
           </div>
-          <div className="tab-step-controls"><Button variant="outline" aria-label="前一音" disabled={selected === 0} onClick={() => choose(selected - 1)}><ChevronLeft size={18} aria-hidden="true" />前一音</Button><Button variant="outline" aria-label="后一音" disabled={selected === exercise.events.length - 1} onClick={() => choose(selected + 1)}>后一音<ChevronRight size={18} aria-hidden="true" /></Button></div>
+          {!interactivePractice && <div className="tab-step-controls"><Button variant="outline" aria-label="前一音" disabled={selected === 0} onClick={() => choose(selected - 1)}><ChevronLeft size={18} aria-hidden="true" />前一音</Button><Button variant="outline" aria-label="后一音" disabled={selected === exercise.events.length - 1} onClick={() => choose(selected + 1)}>后一音<ChevronRight size={18} aria-hidden="true" /></Button></div>}
         </>}
       </div>)}
     </div>
     {error && <p className="tab-exercise-error" role="alert">{error}</p>}
-    <p className="tab-reference-note">示范使用合成音，帮助听音高与时值；不会检测你的弹奏。可以先逐音练，再跟示范连起来。</p>
+    <p className="tab-reference-note">{interactivePractice ? '示范使用合成音，帮助听音高与时值。' : '示范使用合成音，帮助听音高与时值；不会检测你的弹奏。可以先逐音练，再跟示范连起来。'}</p>
   </section>
 }
 

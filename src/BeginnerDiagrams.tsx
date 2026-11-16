@@ -4,20 +4,23 @@ import { guitarParts, type GuitarPart } from './guitar-parts'
 
 type DiagramKind = 'anatomy' | 'notation' | 'rhythm-values'
 
-function GuitarAnatomy() {
-  const [selected, setSelected] = useState(guitarParts[0])
+export function GuitarAnatomy({ part, onSelect, leftHanded = false, showDiagram = true }: { part?: GuitarPart; onSelect?: (part: GuitarPart) => void; leftHanded?: boolean; showDiagram?: boolean } = {}) {
+  const [localPart, setLocalPart] = useState(guitarParts[0])
+  const selected = part ?? localPart
   const description = useRef<HTMLElement>(null)
   const descriptionId = useId()
   const is = (id: string) => selected.id === id
   function selectPart(part: GuitarPart) {
-    setSelected(part)
+    setLocalPart(part)
+    onSelect?.(part)
     if (window.matchMedia('(min-width: 261px)').matches) requestAnimationFrame(() => description.current?.scrollIntoView({ block: 'nearest', behavior: 'instant' }))
   }
   const bodyPath = 'M150 205 C122 191 95 210 96 237 C97 254 116 263 111 279 C105 296 78 310 80 346 C82 386 121 405 170 405 C219 405 258 386 260 346 C262 310 235 296 229 279 C224 263 243 254 244 237 C245 210 218 191 190 205 Z'
   return <figure className="beginner-diagram guitar-anatomy" aria-label="认识吉他各部位">
     <div className="anatomy-heading"><strong>整把琴，先认位置</strong><span>点部位名称查看</span></div>
-    <div className="anatomy-explorer">
-    <svg className="anatomy-guitar" viewBox="72 6 200 410" role="img" aria-label={`原声吉他正面图，当前突出显示${selected.name}。${selected.where}`}>
+    <div className={`anatomy-explorer${showDiagram ? '' : ' anatomy-controls-only'}`}>
+    {showDiagram && <svg className="anatomy-guitar" viewBox="72 6 200 410" role="img" aria-label={`原声吉他正面图，当前突出显示${selected.name}。${selected.where}`}>
+      <g transform={leftHanded ? 'translate(344 0) scale(-1 1)' : undefined}>
       <path d={bodyPath} className={is('body') ? 'guitar-shape part-selected' : 'guitar-shape'} />
       <path d="M151 80 L189 80 L196 233 L144 233 Z" className={is('neck') ? 'guitar-neck part-selected' : 'guitar-neck'} />
       <path d="M150 27 Q170 18 190 27 L187 83 L153 83 Z" className={is('head') ? 'guitar-head part-selected' : 'guitar-head'} />
@@ -42,12 +45,16 @@ function GuitarAnatomy() {
         {[0, 1, 2, 3, 4, 5].map(index => <path key={index} d={`M${index < 3 ? 159 : 181} ${39 + index % 3 * 15} L${158 + index * 4.8} 85 L${155 + index * 6} 349`} strokeWidth={1.8 - index * .18} />)}
       </g>
       {[0, 1, 2, 3, 4, 5].map(index => <circle key={index} cx={155 + index * 6} cy="350" r="2.2" fill="#e9eef5" />)}
+      </g>
       <g className="anatomy-pointer" aria-hidden="true">
-        <path d={`M${selected.point[0]} ${selected.point[1]} L263 ${selected.point[1]} L263 19 H244`} />
-        <circle cx={selected.point[0]} cy={selected.point[1]} r="5" />
+        <path d={`M${leftHanded ? 344 - selected.point[0] : selected.point[0]} ${selected.point[1]} L263 ${selected.point[1]} L263 19 H244`} />
+        <circle cx={leftHanded ? 344 - selected.point[0] : selected.point[0]} cy={selected.point[1]} r="5" />
         <text x="241" y="24" textAnchor="end">{selected.name}</text>
       </g>
-    </svg>
+      {onSelect && <g aria-hidden="true" className="anatomy-hotspots" transform={leftHanded ? 'translate(344 0) scale(-1 1)' : undefined}>
+        {guitarParts.map(item => <circle key={item.id} cx={item.point[0]} cy={item.point[1]} r={6} onClick={() => selectPart(item)} data-active={is(item.id)}><title>{item.name}</title></circle>)}
+      </g>}
+    </svg>}
     <div className="anatomy-parts" role="group" aria-label="选择吉他部位">
       {guitarParts.map(part => <button type="button" key={part.id} aria-label={`认识${part.name}`} aria-pressed={selected.id === part.id} aria-controls={descriptionId} onClick={() => selectPart(part)}>{part.name}</button>)}
     </div>

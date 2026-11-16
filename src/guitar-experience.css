@@ -1,0 +1,63 @@
+.guitar-experience { display: grid; gap: 12px; min-width: 0; align-content: start; }
+.experience-heading { display: grid; gap: 4px; }
+.experience-heading .learning-back { justify-self: start; }
+.experience-instrument { min-width: 0; padding: 12px; border: 1px solid #c7d1ec; border-radius: 12px; background: #fff; }
+.experience-strings { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; margin-top: 8px; }
+.experience-strings button { display: grid; gap: 2px; place-content: center; text-align: center; min-height: 56px; border: 1px solid #c7d1ec; border-radius: 8px; background: #f1f4f8; }
+.experience-strings button.struck { border-color: #254dff; background: #e4eaff; color: #254dff; }
+.experience-strings button span, .experience-feedback { font: 500 14px/1.5 "IBM Plex Mono", ui-monospace, monospace; }
+.experience-feedback { min-height: 24px; margin: 8px 0 0; color: #31415f; }
+.experience-instruction { margin-top: 4px; color: #55627a; font-size: 14px; }
+.experience-fret-ranges { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.experience-fret-ranges button { min-height: 44px; padding: 0 10px; border: 1px solid #c7d1ec; border-radius: 8px; font-size: 13px; }
+.experience-fret-ranges button[aria-pressed=true] { background: #e4eaff; border-color: #254dff; color: #254dff; }
+.experience-fretboard { display: grid; align-items: center; min-width: 0; overflow-x: auto; border-radius: 8px; background: #26324a; color: #eef2fc; text-align: center; font-size: 13px; }
+.experience-fretboard > span { padding-block: 6px; }
+.experience-fretboard button { display: grid; place-items: center; height: 44px; border-left: 1px solid #8394b8; background: linear-gradient(transparent calc(50% - 1px), #95a6c9 50%, transparent calc(50% + 1px)); }
+.experience-fretboard button[aria-pressed=true] { color: #f7f9ff; background-color: #324fb3; }
+.experience-fretboard button[aria-pressed=true] span { padding-inline: 4px; background: #324fb3; }
+.experience-fretboard button:focus-visible { outline-offset: -3px; outline-color: #fff; }
+.experience-instrument:focus-visible { outline: 2px solid #254dff; outline-offset: 2px; }
+.experience-sweeps { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 6px 0; }
+.experience-sweeps button { min-height: 44px; padding-inline: 5px; border: 1px solid #c7d1ec; border-radius: 8px; background: #f1f4f8; color: #31415f; font-size: 14px; }
+.experience-sweep-pad { display: grid; grid-template-columns: repeat(6, 1fr); min-height: 70px; overflow: hidden; border-radius: 8px; background: #26324a; color: #dfe7fc; cursor: ew-resize; touch-action: none; user-select: none; }
+.experience-sweep-pad span { display: grid; grid-template-rows: 1fr auto; justify-items: center; padding-block: 3px; font-size: 12px; }
+.experience-sweep-pad i { width: 2px; background: #95a6c9; }
+.experience-sweep-pad span.struck { background: #3855af; color: #fff; }
+.experience-sweep-pad span.struck i { background: #fff; }
+.experience-chords { margin: 10px 0; }
+.experience-chords button { padding-inline: 8px; }
+.experience-instrument > .chord-diagram { max-width: 240px; margin: 4px auto; }
+.experience-rooms { border-bottom: 1px solid #c7d1ec; padding-bottom: 8px; }
+.experience-rooms button { padding-inline: 9px; font-size: 14px; }
+.experience-rooms button[aria-current=page] { color: #254dff; background: #e4eaff; border-color: #254dff; }
+.experience-concepts { margin-bottom: 8px; gap: 4px; }
+.experience-concepts button { padding-inline: 9px; font-size: 13px; }
+.experience-card { min-width: 0; padding: 12px; border: 1px solid #c7d1ec; border-radius: 12px; background: #fff; }
+.experience-options { display: grid; gap: 10px; margin-block: 10px; }
+.experience-options article { border-bottom: 1px solid #dce3ee; padding-bottom: 8px; }
+.experience-options h3 { font-weight: 600; }
+.experience-options p { color: #55627a; font-size: 14px; line-height: 1.6; }
+.experience-options .learning-tool-button { margin: 4px 8px 0 0; }
+.experience-challenges { display: grid; gap: 8px; }
+.experience-challenge-heading { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.experience-challenge-heading span, .experience-tempo { color: #55627a; font-size: 13px; }
+.experience-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
+.experience-levels button { min-height: 48px; padding: 5px; border: 1px solid #c7d1ec; border-radius: 8px; text-align: left; font-size: 13px; }
+.experience-levels button[aria-pressed=true] { color: #1638c5; background: #e4eaff; border-color: #254dff; }
+.experience-levels button span { display: block; margin-top: 2px; color: #17694d; font-size: 12px; }
+.experience-target { margin-top: 8px; border-radius: 8px; background: #e4eaff; color: #263e9a; padding: 6px 8px; font-weight: 600; }
+.experience-challenge-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 6px; margin-top: 6px; }
+.experience-challenge-actions button { min-height: 44px; }
+.experience-tempo { display: grid; gap: 3px; }
+.experience-rhythm-actions { margin-top: 6px; }
+.experience-rhythm-actions button:last-child { border-color: #254dff; background: #254dff; color: #fff; }
+.experience-score { margin-top: 8px; }
+.experience-score > summary { min-height: 44px; padding-block: 10px; color: #254dff; }
+.experience-views { gap: 4px; }
+.experience-views button, .experience-3d-controls button { padding-inline: 8px; font-size: 13px; }
+.experience-3d-stage { min-width: 0; border: 1px solid #c7d1ec; border-radius: 12px; padding: 6px; background: #fff; }
+.experience-3d-stage canvas { display: block; width: 100%; height: clamp(240px, 50dvh, 445px); background: radial-gradient(ellipse at 48% 58%, #435576, #243049 77%); border-radius: 8px; touch-action: none; cursor: grab; }
+.experience-3d-stage canvas:active { cursor: grabbing; }
+.experience-3d-controls { margin-top: 6px; gap: 4px; }
+.experience-3d-stage .experience-instruction { margin: 6px 3px 2px; }
